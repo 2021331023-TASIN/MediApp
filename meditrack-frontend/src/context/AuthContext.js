@@ -1,10 +1,14 @@
 // frontend/src/context/AuthContext.js
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import axios from 'axios'; // <-- VITAL: Ensures 'axios' is defined
+import axios from 'axios';
 
-// The base URL for your backend API
-const API_URL = 'http://localhost:5000/api/auth'; 
+// CRITICAL FIX: Use the Environment Variable set in Vercel.
+// Vercel will inject the value of REACT_APP_API_URL here.
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000'; // Fallback for local dev
+
+// Auth routes (Login/Register) will go to: BASE_URL/api/auth
+const AUTH_URL = `${BASE_URL}/api/auth`; 
 
 // Create the Context
 const AuthContext = createContext();
@@ -14,12 +18,12 @@ export const useAuth = () => useContext(AuthContext);
 
 // Provider Component
 export const AuthProvider = ({ children }) => {
-    // STATE DEFINITIONS: FIXES ALL 'is not defined' ESLint errors
+    // ... (rest of your state definitions remain the same)
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
-    // LOGOUT FUNCTION: Must be defined before authenticatedRequest uses it
+    // LOGOUT FUNCTION: (remains the same)
     const logout = () => {
         localStorage.removeItem('token');
         delete axios.defaults.headers.common['Authorization'];
@@ -34,21 +38,19 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     }, [token]);
 
-    // Helper function to make authenticated requests (Your submitted code snippet)
+    // Helper function to make authenticated requests
     const authenticatedRequest = async (method, url, data = null) => {
         try {
             const config = {
                 method,
                 url,
-                // baseURL should be set in axios configuration or explicitly here
-                baseURL: 'http://localhost:5000/api', // Base API path for non-auth routes
+                // FIX: Use the BASE_URL variable here. Non-auth routes go to: BASE_URL/api
+                baseURL: `${BASE_URL}/api`, 
                 headers: {
                     'Content-Type': 'application/json',
-                    // The Authorization header is typically managed by axios defaults, but we ensure Content-Type is set.
                 },
                 data: data,
             };
-            // Manually add Authorization header if it's not set globally or if it's missing (failsafe)
             if (token) {
                 config.headers['Authorization'] = `Bearer ${token}`;
             }
@@ -57,7 +59,6 @@ export const AuthProvider = ({ children }) => {
             return response.data;
         } catch (error) {
             if (error.response && error.response.status === 401) {
-                // If token expires or is invalid, force logout
                 logout(); 
                 throw new Error("Session expired. Please log in again.");
             }
@@ -65,10 +66,11 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Registration Function (Uses state setters)
+    // Registration Function
     const register = async (name, email, password) => {
         try {
-            const response = await axios.post(`${API_URL}/register`, {
+            // FIX: Use the new AUTH_URL variable
+            const response = await axios.post(`${AUTH_URL}/register`, {
                 name,
                 email,
                 password,
@@ -85,10 +87,11 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Login Function (Uses state setters)
+    // Login Function
     const login = async (email, password) => {
         try {
-            const response = await axios.post(`${API_URL}/login`, {
+            // FIX: Use the new AUTH_URL variable
+            const response = await axios.post(`${AUTH_URL}/login`, {
                 email,
                 password,
             });
@@ -105,7 +108,7 @@ export const AuthProvider = ({ children }) => {
         }
     };
     
-    // Value object containing all exported variables/functions
+    // ... (rest of the component remains the same)
     const value = {
         user,
         token,
