@@ -3,12 +3,11 @@
 const mysql = require('mysql2');
 
 // Database Connection Pool Setup
+// CRITICAL: We now use the single DATABASE_URL environment variable
+// which includes the Host, User, Password, Database, Port, AND the
+// required 'ssl-mode=REQUIRED' parameter for Aiven.
 const dbPool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    // Note: DB_PASSWORD is read as an empty string from .env if you left it blank.
-    password: process.env.DB_PASSWORD, 
-    database: process.env.DB_NAME,
+    uri: process.env.DATABASE_URL, // Reads the full connection string
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -18,6 +17,8 @@ const dbPool = mysql.createPool({
 dbPool.getConnection((err, connection) => {
     if (err) {
         console.error('Database connection failed: ' + err.stack);
+        // CRITICAL: If deployment fails here, it's an SSL or connection string error.
+        console.error('Check your DATABASE_URL environment variable in Render!');
         process.exit(1); 
     }
     console.log('Successfully connected to MySQL Database as id ' + connection.threadId);
