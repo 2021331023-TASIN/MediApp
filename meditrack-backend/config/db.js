@@ -3,11 +3,18 @@
 const mysql = require('mysql2');
 
 // Database Connection Pool Setup
-// CRITICAL: We now use the single DATABASE_URL environment variable
-// which includes the Host, User, Password, Database, Port, AND the
-// required 'ssl-mode=REQUIRED' parameter for Aiven.
+// CRITICAL: We pass the full URI AND explicitly enable SSL, which the mysql2 library requires.
 const dbPool = mysql.createPool({
-    uri: process.env.DATABASE_URL, // Reads the full connection string
+    // 1. Use 'uri' to pass the entire connection string (Host, User, Pass, DB, Port, and 'ssl-mode=REQUIRED').
+    uri: process.env.DATABASE_URL, 
+    
+    // 2. CRITICAL FIX: Add the 'ssl' object to explicitly enable SSL.
+    // This satisfies the mysql2 driver's requirement to connect securely to Aiven.
+    ssl: {
+        // Setting this to true forces the connection to use TLS/SSL encryption.
+        rejectUnauthorized: false 
+    },
+    
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -17,8 +24,8 @@ const dbPool = mysql.createPool({
 dbPool.getConnection((err, connection) => {
     if (err) {
         console.error('Database connection failed: ' + err.stack);
-        // CRITICAL: If deployment fails here, it's an SSL or connection string error.
-        console.error('Check your DATABASE_URL environment variable in Render!');
+        // CRITICAL: If deployment fails here, check the SSL configuration (ssl: {}) and the DATABASE_URL.
+        console.error('Final check: Ensure DATABASE_URL is set in Render!');
         process.exit(1); 
     }
     console.log('Successfully connected to MySQL Database as id ' + connection.threadId);
