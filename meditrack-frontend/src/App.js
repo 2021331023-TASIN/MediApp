@@ -157,6 +157,17 @@ const Dashboard = () => {
   const [todaySchedules, setTodaySchedules] = React.useState([]);
   const [loadingStats, setLoadingStats] = React.useState(true);
   const [loadingPrescriptions, setLoadingPrescriptions] = React.useState(true);
+  const [loadingSchedules, setLoadingSchedules] = React.useState(true);
+
+  const fetchTodaySchedules = React.useCallback(async () => {
+    try {
+      const schedules = await authenticatedRequest('get', '/prescriptions/today');
+      setTodaySchedules(schedules);
+      setLoadingSchedules(false);
+    } catch (error) {
+      console.error("Failed to fetch today's schedules", error);
+    }
+  }, [authenticatedRequest]);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -171,18 +182,18 @@ const Dashboard = () => {
         setPrescriptions(presData);
         setLoadingPrescriptions(false);
 
-        // Fetch Today's Schedules (For Alarms)
-        const schedules = await authenticatedRequest('get', '/prescriptions/today');
-        setTodaySchedules(schedules);
+        // Fetch Today's Schedules (For Alarms & Checklist)
+        fetchTodaySchedules();
 
       } catch (error) {
         console.error("Failed to fetch dashboard data", error);
         setLoadingStats(false);
         setLoadingPrescriptions(false);
+        setLoadingSchedules(false);
       }
     };
     if (user) fetchData();
-  }, [user, authenticatedRequest]);
+  }, [user, authenticatedRequest, fetchTodaySchedules]);
 
   // --- ALARM SYSTEM ---
   React.useEffect(() => {
@@ -199,25 +210,35 @@ const Dashboard = () => {
       const currentMinutes = now.getMinutes().toString().padStart(2, '0');
       const currentTimeString = `${currentHours}:${currentMinutes}`; // "14:00"
 
-      // Find matching schedules
-      // time_of_day format from DB might be "14:00:00"
-      const dues = todaySchedules.filter(s => s.time_of_day.startsWith(currentTimeString));
+      // Find matching schedules that are NOT taken
+      const dues = todaySchedules.filter(s =>
+        s.time_of_day.startsWith(currentTimeString) && !s.is_taken
+      );
 
       dues.forEach(dose => {
         // Trigger Alarm
         new Notification(`Time for Medicine: ${dose.name}`, {
           body: `Take ${dose.dosage} now!`,
         });
-        alert(`⏰ ALARM: Time to take ${dose.name} (${dose.dosage})`);
+        // Optional: play sound or show toast
       });
     };
 
     // Check every minute
     const interval = setInterval(checkAlarms, 60000);
-    // Also check immediately on load/schedule update just in case (optional, maybe too aggressive)
-
     return () => clearInterval(interval);
   }, [todaySchedules]);
+
+  const handleMarkTaken = async (prescriptionId, scheduleTime) => {
+    try {
+      await authenticatedRequest('post', '/prescriptions/take', { prescriptionId, scheduleTime });
+      // Refresh list to update UI
+      fetchTodaySchedules();
+    } catch (error) {
+      console.error("Failed to mark dose as taken", error);
+      alert("Failed to mark as taken.");
+    }
+  };
 
   if (!user) return <Navigate to="/login" replace />;
 
@@ -225,83 +246,112 @@ const Dashboard = () => {
     <div className="container dashboard-grid">
       <h2>Welcome back, {user.name}!</h2>
 
-      {/* --- Quick Status Cards (Flexible Grid) --- */}
-      <div className="status-cards">
-        <div className="card status-card primary-card">
-          <h3>Today's Doses</h3>
-          <p className="big-number">
-            {loadingStats ? '-' : stats.dailyDoses}
-          </p>
-          <span>Doses remaining</span>
+      <div className="dashboard-columns">
+        <div className="main-column">
+          {/* --- Today's Medicine Checklist --- */}
+          <div className="card checklist-card">
+            <h3>✅ Today's Medicine</h3>
+            {loadingSchedules ? <p>Loading schedule...</p> : (
+              todaySchedules.length === 0 ? <p>No medicines scheduled for today.</p> : (
+                <ul className="checklist">
+                  {todaySchedules.map((schedule, index) => (
+                    <li key={`${schedule.prescription_id}-${index}`} className={`checklist-item ${schedule.is_taken ? 'taken' : ''}`}>
+                      <div className="checklist-info">
+                        <span className="checklist-time">
+                          {schedule.time_of_day.substring(0, 5)}
+                        </span>
+                        <div className="checklist-drug">
+                          <strong>{schedule.name}</strong>
+                          <span>{schedule.dosage}</span>
+                        </div>
+                      </div>
+                      {!schedule.is_taken ? (
+                        <button
+                          className="mark-taken-btn"
+                          onClick={() => handleMarkTaken(schedule.prescription_id, schedule.time_of_day)}
+                        >
+                          Mark as Taken
+                        </button>
+                      ) : (
+                        <span className="taken-badge">✓ Taken</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )
+            )}
+          </div>
+
+          {/* --- Current Medications List --- */}
+          <div className="card list-view">
+            <h3>Current Medications</h3>
+            {loadingPrescriptions ? <p>Loading...</p> : (
+              prescriptions.length === 0 ? <p>No active prescriptions.</p> : (
+                <ul className="prescription-list">
+                  {prescriptions.map(p => (
+                    <li key={p.prescription_id} className="prescription-item">
+                      <div className="pres-info">
+                        <strong>{p.name}</strong>
+                        <span className="pres-dosage">{p.dosage}</span>
+                        <span className="pres-duration" style={{ fontSize: '0.85rem', color: '#666', display: 'block', marginTop: '2px' }}>
+                          Duration: {(() => {
+                            if (!p.end_date) return 'Ongoing';
+                            const start = new Date(p.start_date);
+                            const end = new Date(p.end_date);
+                            const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+                            if (diffDays % 30 === 0) return `${diffDays / 30} Month(s)`;
+                            if (diffDays % 7 === 0) return `${diffDays / 7} Week(s)`;
+                            return `${diffDays} Days`;
+                          })()}
+                        </span>
+                      </div>
+                      <div className="pres-actions">
+                        <div className="pres-dates">
+                          Start: {new Date(p.start_date).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )
+            )}
+          </div>
         </div>
 
-        <div className="card status-card secondary-card">
-          <h3>Total Prescriptions</h3>
-          <p className="big-number">
-            {loadingStats ? '-' : stats.activePrescriptions}
-          </p>
-          <span>Active medications</span>
+        <div className="sidebar-column">
+          {/* --- Quick Status Cards --- */}
+          <div className="status-cards-vertical">
+            <div className="card status-card primary-card">
+              <h3>Today's Doses</h3>
+              <p className="big-number">
+                {loadingStats ? '-' : stats.dailyDoses}
+              </p>
+              <span>Doses / Day</span>
+            </div>
+
+            <div className="card status-card secondary-card">
+              <h3>Active Meds</h3>
+              <p className="big-number">
+                {loadingStats ? '-' : stats.activePrescriptions}
+              </p>
+              <span>Prescriptions</span>
+            </div>
+          </div>
+
+          {/* --- Quick Action Card --- */}
+          <div className="quick-actions card">
+            <h3>Quick Actions</h3>
+            <div className="action-buttons-vertical">
+              <Link to="/prescriptions" className="button action-button primary-action">
+                Manage Prescriptions
+              </Link>
+              <Link to="/history" className="button action-button secondary-action">
+                View History
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* --- Quick Action Card --- */}
-      <div className="quick-actions card">
-        <h3>Quick Actions</h3>
-        <div className="action-buttons">
-          <Link to="/prescriptions" className="button action-button primary-action">
-            Manage Prescriptions
-          </Link>
-          {/* Added a link placeholder for future History functionality */}
-          <Link to="/history" className="button action-button secondary-action">
-            View History
-          </Link>
-        </div>
-      </div>
-
-      {/* --- Current Medications List --- */}
-      <div className="card list-view">
-        <h3>Current Medications</h3>
-        {loadingPrescriptions ? <p>Loading...</p> : (
-          prescriptions.length === 0 ? <p>No active prescriptions.</p> : (
-            <ul className="prescription-list">
-              {prescriptions.map(p => (
-                <li key={p.prescription_id} className="prescription-item">
-                  <div className="pres-info">
-                    <strong>{p.name}</strong>
-                    <span className="pres-dosage">{p.dosage}</span>
-                    <span className="pres-duration" style={{ fontSize: '0.85rem', color: '#666', display: 'block', marginTop: '2px' }}>
-                      Duration: {(() => {
-                        if (!p.end_date) return 'Ongoing';
-                        const start = new Date(p.start_date);
-                        const end = new Date(p.end_date);
-                        const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-                        if (diffDays % 30 === 0) return `${diffDays / 30} Month(s)`;
-                        if (diffDays % 7 === 0) return `${diffDays / 7} Week(s)`;
-                        return `${diffDays} Days`;
-                      })()}
-                    </span>
-                  </div>
-                  <div className="pres-actions">
-                    <div className="pres-dates">
-                      Start: {new Date(p.start_date).toLocaleDateString()}
-                    </div>
-                    <span className="delete-icon" style={{ opacity: 0.5, cursor: 'default' }} title="Go to Manage Prescriptions to delete">🗑️</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )
-        )}
-      </div>
-
-      {/* --- Notification Panel (Alert Styling) --- */}
-      <div className="card notification-panel">
-        <h3>Reminders & Alerts</h3>
-        {/* Placeholder for alert */}
-        <p className="alert-text">💊 Don't forget your next dose at 08:00 AM.</p>
-        <button onClick={logout} className="nav-button logout-btn">Logout</button>
-      </div>
-
     </div>
   );
 };

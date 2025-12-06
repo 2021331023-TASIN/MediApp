@@ -257,3 +257,129 @@ a:focus, button:focus, input:focus {
         font-size: 2rem;
     }
 }
+
+/* --- Dashboard Layout Split --- */
+.dashboard-columns {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 900px) {
+    .dashboard-columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+.main-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-column {
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- Checklist Styles --- */
+.checklist-card {
+    background: white;
+    padding: 1.5rem;
+}
+
+.checklist {
+    list-style: none;
+    padding: 0;
+}
+
+.checklist-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.3s;
+}
+
+.checklist-item:last-child {
+    border-bottom: none;
+}
+
+.checklist-item.taken {
+    background-color: #f0fdf4; /* Light green bg */
+    opacity: 0.7;
+}
+
+.checklist-info {
+    display: flex;
+    align-items: center; /* Align items vertically in center */
+    gap: 15px;
+}
+
+.checklist-time {
+    font-weight: 700;
+    color: var(--primary-color);
+    background: #e6f0ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    min-width: 60px; /* Ensure uniform width */
+    text-align: center;
+}
+
+.checklist-drug {
+    display: flex;
+    flex-direction: column;
+}
+
+.checklist-drug strong {
+    font-size: 1.05rem;
+}
+
+.checklist-drug span {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.mark-taken-btn {
+    background-color: transparent;
+    border: 2px solid var(--secondary-color);
+    color: var(--secondary-color);
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.mark-taken-btn:hover {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.taken-badge {
+    color: var(--secondary-color);
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Make status cards in sidebar vertical but maintain look */
+.status-cards-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 2rem;
+}
+
+.action-buttons-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.action-buttons-vertical .button {
+    margin-top: 0;
+}

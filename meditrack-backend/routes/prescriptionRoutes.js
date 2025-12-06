@@ -6,22 +6,13 @@ const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// Active Prescriptions (Add/Get)
-router.route('/')
-    .post(protect, prescriptionController.addPrescription)
-    .get(protect, prescriptionController.getPrescriptions);
-
-// Dashboard Stats
+// Routes
+router.post('/', protect, prescriptionController.addPrescription);
+router.get('/', protect, prescriptionController.getPrescriptions);
+router.get('/today', protect, prescriptionController.getTodaySchedules); // Updated for dashboard checklist
+router.post('/take', protect, prescriptionController.markDoseTaken);
 router.get('/stats', protect, prescriptionController.getDashboardStats);
-
-// History
 router.get('/history', protect, prescriptionController.getHistory);
-
-// Today's Schedules (Alarms)
-router.get('/today', protect, prescriptionController.getTodaySchedules);
-
-// Delete Prescription
-router.route('/:id')
-    .delete(protect, prescriptionController.deletePrescription);
+router.delete('/:id', protect, prescriptionController.deletePrescription);
 
 module.exports = router;
