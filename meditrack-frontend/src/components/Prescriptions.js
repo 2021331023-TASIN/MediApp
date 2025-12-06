@@ -139,7 +139,7 @@ const Prescriptions = () => {
             endDate: calculatedEndDate,
             scheduleTimes,
             pillsPerDose: parseInt(pillsPerDose) || 1,
-            initialQuantity: initialQuantity ? parseInt(initialQuantity) : null,
+            initialQuantity: (calculatedDurationDays * finalDosesPerDay * (parseInt(pillsPerDose) || 1)),
             instructions,
             dosesPerDay: finalDosesPerDay,
             durationDays: calculatedDurationDays
@@ -155,6 +155,7 @@ const Prescriptions = () => {
             setStartDate('');
             setEndDate('');
             setSelectedTimes({ morning: false, noon: false, night: false });
+            setMealTiming('after');
             setMealTiming('after');
             setInitialQuantity('');
             setPillsPerDose('1');
@@ -232,71 +233,50 @@ const Prescriptions = () => {
 
                     <div className="form-grid">
                         <div className="form-group">
-                            <label>Total Quantity (Pills)</label>
-                            <input
-                                type="number"
-                                placeholder="e.g., 30"
-                                value={initialQuantity}
-                                onChange={(e) => setInitialQuantity(e.target.value)}
-                                min="1"
-                            />
+                            <label>Duration & Unit</label>
+                            <div className="duration-input-wrapper" style={{ display: 'flex', gap: '10px' }}>
+                                <input
+                                    type="number"
+                                    placeholder="e.g. 7"
+                                    value={durationValue}
+                                    onChange={(e) => setDurationValue(e.target.value)}
+                                    min="1"
+                                    style={{ flex: 1 }}
+                                />
+                                <select
+                                    value={durationUnit}
+                                    onChange={(e) => setDurationUnit(e.target.value)}
+                                    style={{ flex: 1, padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
+                                >
+                                    <option value="days">Days</option>
+                                    <option value="weeks">Weeks</option>
+                                    <option value="months">Months</option>
+                                </select>
+                            </div>
                         </div>
+
                         <div className="form-group">
-                            <label>Pills Per Dose</label>
+                            <label>Doses Per Day (Frequency)</label>
                             <input
                                 type="number"
-                                placeholder="1"
-                                value={pillsPerDose}
-                                onChange={(e) => setPillsPerDose(e.target.value)}
+                                placeholder="e.g. 3"
+                                value={dosesPerDay}
+                                onChange={(e) => setDosesPerDay(e.target.value)}
                                 min="1"
-                                required
                             />
                         </div>
                     </div>
 
                     <div className="form-group">
-                        <label>Instructions / Notes</label>
-                        <textarea
-                            placeholder="e.g. Take with plenty of water..."
-                            value={instructions}
-                            onChange={(e) => setInstructions(e.target.value)}
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }}
-                        />
-                    </div>
-
-                    <div className="form-group section-group">
-                        <label className="section-label">Duration</label>
-                        <div className="duration-input-wrapper">
-                            <input
-                                type="number"
-                                placeholder="e.g. 7"
-                                value={durationValue}
-                                onChange={(e) => setDurationValue(e.target.value)}
-                                min="1"
-                            />
-                            <select
-                                value={durationUnit}
-                                onChange={(e) => setDurationUnit(e.target.value)}
-                            >
-                                <option value="days">Days</option>
-                                <option value="weeks">Weeks</option>
-                                <option value="months">Months</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="form-group">
-                        <label>Doses Per Day (Frequency)</label>
+                        <label>Pills Per Dose</label>
                         <input
                             type="number"
-                            placeholder="e.g. 3"
-                            value={dosesPerDay}
-                            onChange={(e) => setDosesPerDay(e.target.value)}
+                            placeholder="1"
+                            value={pillsPerDose}
+                            onChange={(e) => setPillsPerDose(e.target.value)}
                             min="1"
+                            required
                         />
-                        <small style={{ color: '#777', display: 'block', marginTop: '5px' }}>
-                            Needed to calculate Total Course Doses (Total = Duration * Frequency)
-                        </small>
                     </div>
 
 

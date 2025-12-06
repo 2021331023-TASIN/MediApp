@@ -125,6 +125,8 @@ exports.getPrescriptions = async (req, res) => {
                 p.current_quantity,
                 p.duration_days,
                 p.doses_per_day,
+                p.pills_per_dose,
+                p.instructions,
                 (SELECT COUNT(*) FROM dose_history dh WHERE dh.prescription_id = p.prescription_id AND dh.is_taken = TRUE) as total_taken
             FROM user_prescriptions p
             JOIN medicines m ON p.medicine_id = m.medicine_id
@@ -235,7 +237,9 @@ exports.getHistory = async (req, res) => {
 exports.getTodaySchedules = async (req, res) => {
     const userId = req.userId;
     try {
-        const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        // Use local date instead of UTC (toISOString) to avoid timezone offsets causing "yesterday"
+        const d = new Date();
+        const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
         const query = `
             SELECT 
@@ -252,10 +256,13 @@ exports.getTodaySchedules = async (req, res) => {
             LEFT JOIN dose_history dh ON p.prescription_id = dh.prescription_id 
                                    AND DATE(dh.scheduled_time) = ? 
                                    AND TIME(dh.scheduled_time) = rs.time_of_day
-            WHERE p.user_id = ? AND p.is_active = TRUE
+            WHERE p.user_id = ? 
+              AND p.is_active = TRUE
+              AND p.start_date <= ?
+              AND (p.end_date IS NULL OR p.end_date >= ?)
             ORDER BY rs.time_of_day ASC
         `;
-        const [schedules] = await dbPool.promise().query(query, [today, userId]);
+        const [schedules] = await dbPool.promise().query(query, [today, userId, today, today]);
         res.json(schedules);
     } catch (error) {
         console.error('Error fetching today schedules:', error);
@@ -275,7 +282,9 @@ exports.markDoseTaken = async (req, res) => {
         return res.status(400).json({ message: 'Missing prescriptionId or scheduleTime.' });
     }
 
-    const today = new Date().toISOString().slice(0, 10);
+    // Use local date instead of UTC (toISOString)
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     // Construct full scheduled datetime: YYYY-MM-DD HH:MM:SS
     // Note: scheduleTime should be HH:MM or HH:MM:SS
     const scheduledDateTime = `${today} ${scheduleTime}`;

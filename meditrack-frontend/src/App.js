@@ -1,18 +1,11 @@
-// frontend/src/App.js
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import './App.css';
-
-// Components
-import Home from './components/Home';
-import Register from './components/Register';
 import Login from './components/Login';
+import Register from './components/Register';
+import Home from './components/Home';
 import Prescriptions from './components/Prescriptions';
 import History from './components/History';
-
-
-import './components/Prescriptions.css'; // Import Prescription styles
+import './App.css';
 import { useAuth } from './context/AuthContext';
 
 // --- UPDATED Dashboard Component for Modern UX ---
@@ -216,9 +209,20 @@ const Dashboard = () => {
                             </div>
                           </div>
 
-                          <div className="pres-dates" style={{ marginTop: '12px', fontSize: '0.85rem', color: '#777', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Start: {new Date(p.start_date).toLocaleDateString()}</span>
-                            {p.end_date && <span>End: {new Date(p.end_date).toLocaleDateString()}</span>}
+                          <div className="pres-dates" style={{ marginTop: '12px', fontSize: '0.85rem', color: '#777', borderTop: '1px solid #f0f0f0', paddingTop: '8px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '8px' }}>
+                              <span>Frequency: <b>{p.doses_per_day}x / day</b></span>
+                              <span>Pills per dose: <b>{p.pills_per_dose}</b></span>
+                            </div>
+                            {p.instructions && (
+                              <div style={{ marginBottom: '8px', fontStyle: 'italic', color: '#555' }}>
+                                " {p.instructions} "
+                              </div>
+                            )}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+                              <span>Start: {new Date(p.start_date).toLocaleDateString()}</span>
+                              {p.end_date && <span>End: {new Date(p.end_date).toLocaleDateString()}</span>}
+                            </div>
                           </div>
                         </div>
                       </li>
