@@ -307,7 +307,8 @@ export const AuthProvider = ({ children }) => {
                     'Content-Type': 'application/json',
                     // The Authorization header is typically managed by axios defaults, but we ensure Content-Type is set.
                 },
-                data: data,
+                // Ensure no body is sent for GET/DELETE unless specified
+                data: (method.toLowerCase() === 'get' || method.toLowerCase() === 'delete') ? undefined : data,
             };
             // Manually add Authorization header if it's not set globally or if it's missing (failsafe)
             if (token) {

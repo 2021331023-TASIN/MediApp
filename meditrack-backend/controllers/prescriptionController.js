@@ -75,7 +75,18 @@ exports.getPrescriptions = async (req, res) => {
     const userId = req.userId;
 
     try {
-        // Join prescriptions with medicine names
+        // 1. Auto-expire prescriptions where end_date < TODAY
+        // valid end_date (not null) AND strictly less than current date
+        await dbPool.promise().query(`
+            UPDATE user_prescriptions 
+            SET is_active = FALSE 
+            WHERE user_id = ? 
+              AND is_active = TRUE 
+              AND end_date IS NOT NULL 
+              AND end_date < CURDATE()
+        `, [userId]);
+
+        // 2. Join prescriptions with medicine names
         const query = `
             SELECT 
                 p.prescription_id, 
@@ -103,6 +114,7 @@ exports.getPrescriptions = async (req, res) => {
 exports.deletePrescription = async (req, res) => {
     const userId = req.userId;
     const prescriptionId = req.params.id;
+    console.log(`[DELETE] Request for ID: ${prescriptionId}, User: ${userId}`);
 
     try {
         const query = 'UPDATE user_prescriptions SET is_active = FALSE WHERE prescription_id = ? AND user_id = ?';

@@ -138,7 +138,8 @@ const Prescriptions = () => {
             // Optimistic update or refetch
             setPrescriptions(prev => prev.filter(p => p.prescription_id !== id));
         } catch (err) {
-            alert("Failed to delete: " + err.toString());
+            console.error(err);
+            alert("Failed to delete: " + (err.response?.data?.message || err.message || err.toString()));
         }
     };
 
