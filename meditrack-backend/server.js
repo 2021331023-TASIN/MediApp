@@ -50,9 +50,9 @@ const express = require('express');
 const cors = require('cors');
 
 // Import DB Connection from config file
-const { dbPool } = require('./config/db'); 
+const { dbPool } = require('./config/db');
 // Import Routes
-const authRoutes = require('./routes/authRoutes'); 
+const authRoutes = require('./routes/authRoutes');
 const prescriptionRoutes = require('./routes/prescriptionRoutes'); // <-- NEW IMPORT
 
 const app = express();
@@ -66,7 +66,7 @@ app.use(express.json()); // Allows parsing of JSON request bodies
 
 // --- API Routes ---
 // Authentication routes
-app.use('/api/auth', authRoutes); 
+app.use('/api/auth', authRoutes);
 // Prescription routes
 app.use('/api/prescriptions', prescriptionRoutes); // <-- NEW ROUTE INTEGRATION
 

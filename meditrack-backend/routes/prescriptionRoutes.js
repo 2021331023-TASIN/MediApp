@@ -1,22 +1,3 @@
-// // backend/routes/prescriptionRoutes.js
-
-// const express = require('express');
-// const prescriptionController = require('../controllers/prescriptionController');
-// const { protect } = require('../middleware/authMiddleware');
-
-// const router = express.Router();
-
-// // All routes require authentication (protect middleware)
-// router.route('/')
-//     .post(protect, prescriptionController.addPrescription)  // POST /api/prescriptions
-//     .get(protect, prescriptionController.getPrescriptions); // GET /api/prescriptions
-
-// // Additional routes (e.g., PUT, DELETE) will go here later
-
-// module.exports = router;
-
-
-
 // backend/routes/prescriptionRoutes.js
 
 const express = require('express');
@@ -25,15 +6,22 @@ const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// All routes require authentication (protect middleware)
+// Active Prescriptions (Add/Get)
 router.route('/')
-    .post(protect, prescriptionController.addPrescription)  // POST /api/prescriptions
-    .get(protect, prescriptionController.getPrescriptions); // GET /api/prescriptions
+    .post(protect, prescriptionController.addPrescription)
+    .get(protect, prescriptionController.getPrescriptions);
 
-// Route for deleting a specific prescription
+// Dashboard Stats
+router.get('/stats', protect, prescriptionController.getDashboardStats);
+
+// History
+router.get('/history', protect, prescriptionController.getHistory);
+
+// Today's Schedules (Alarms)
+router.get('/today', protect, prescriptionController.getTodaySchedules);
+
+// Delete Prescription
 router.route('/:id')
     .delete(protect, prescriptionController.deletePrescription);
-
-// Additional routes (e.g., PUT, DELETE) will go here later
 
 module.exports = router;

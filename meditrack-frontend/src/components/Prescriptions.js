@@ -24,6 +24,28 @@ const Prescriptions = () => {
     const [mealTiming, setMealTiming] = useState('after'); // 'before' or 'after'
     const [formLoading, setFormLoading] = useState(false);
 
+    // Duration State
+    const [durationValue, setDurationValue] = useState('');
+    const [durationUnit, setDurationUnit] = useState('days');
+
+    // Auto-calculate End Date
+    useEffect(() => {
+        if (!startDate || !durationValue) return;
+
+        const val = parseInt(durationValue);
+        if (isNaN(val) || val <= 0) return;
+
+        let multiplier = 1;
+        if (durationUnit === 'weeks') multiplier = 7;
+        if (durationUnit === 'months') multiplier = 30;
+
+        const totalDays = val * multiplier;
+        const start = new Date(startDate);
+        const end = new Date(start);
+        end.setDate(start.getDate() + totalDays);
+        setEndDate(end.toISOString().split('T')[0]);
+    }, [startDate, durationValue, durationUnit]);
+
     // --- Data Fetching ---
     const fetchPrescriptions = React.useCallback(async () => {
         if (!user) return;
@@ -63,8 +85,8 @@ const Prescriptions = () => {
 
         // 1. Construct Schedule Times Array
         const scheduleTimes = [];
-        if (selectedTimes.morning) scheduleTimes.push('08:00');
-        if (selectedTimes.noon) scheduleTimes.push('13:00');
+        if (selectedTimes.morning) scheduleTimes.push('10:00');
+        if (selectedTimes.noon) scheduleTimes.push('14:00');
         if (selectedTimes.night) scheduleTimes.push('21:00');
 
         if (scheduleTimes.length === 0) {
@@ -165,6 +187,27 @@ const Prescriptions = () => {
                     </div>
 
                     <div className="form-group section-group">
+                        <label className="section-label">Duration</label>
+                        <div className="duration-input-wrapper">
+                            <input
+                                type="number"
+                                placeholder="e.g. 7"
+                                value={durationValue}
+                                onChange={(e) => setDurationValue(e.target.value)}
+                                min="1"
+                            />
+                            <select
+                                value={durationUnit}
+                                onChange={(e) => setDurationUnit(e.target.value)}
+                            >
+                                <option value="days">Days</option>
+                                <option value="weeks">Weeks</option>
+                                <option value="months">Months</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="form-group section-group">
                         <label className="section-label">When to take?</label>
                         <div className="checkbox-group">
                             <label className={`choice-chip ${selectedTimes.morning ? 'active' : ''}`}>
@@ -239,6 +282,17 @@ const Prescriptions = () => {
                                 <div className="pres-info">
                                     <strong>{p.name}</strong>
                                     <span className="pres-dosage">{p.dosage}</span>
+                                    <span className="pres-duration" style={{ fontSize: '0.85rem', color: '#666', display: 'block', marginTop: '2px' }}>
+                                        Duration: {(() => {
+                                            if (!p.end_date) return 'Ongoing';
+                                            const start = new Date(p.start_date);
+                                            const end = new Date(p.end_date);
+                                            const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+                                            if (diffDays % 30 === 0) return `${diffDays / 30} Month(s)`;
+                                            if (diffDays % 7 === 0) return `${diffDays / 7} Week(s)`;
+                                            return `${diffDays} Days`;
+                                        })()}
+                                    </span>
                                 </div>
                                 <div className="pres-actions">
                                     <div className="pres-dates">

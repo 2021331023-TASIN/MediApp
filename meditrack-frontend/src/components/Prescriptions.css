@@ -146,3 +146,23 @@
        font-size: 0.85rem;
        color: #999;
 }
+
+/* Duration Input Specifics */
+.duration-input-wrapper {
+       display: flex;
+       gap: 10px;
+       align-items: stretch;
+}
+
+.duration-input-wrapper input {
+       flex: 1;
+}
+
+.duration-input-wrapper select {
+       flex: 0 0 100px; /* Fixed width for unit selector */
+       padding: 0.75rem;
+       border: 1px solid #ccc;
+       border-radius: 4px;
+       background-color: white;
+       cursor: pointer;
+}
