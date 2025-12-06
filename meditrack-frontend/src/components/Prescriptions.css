@@ -1,0 +1,148 @@
+/* frontend/src/components/Prescriptions.css */
+
+.section-group {
+       margin-top: 1.5rem;
+       margin-bottom: 1.5rem;
+}
+
+.section-label {
+       display: block;
+       font-weight: 600;
+       margin-bottom: 0.8rem;
+       color: #555;
+       font-size: 1rem;
+}
+
+/* Chips Container */
+.checkbox-group,
+.radio-group {
+       display: flex;
+       gap: 15px;
+       flex-wrap: wrap;
+}
+
+/* The Choice Chip */
+.choice-chip {
+       display: flex;
+       align-items: center;
+       gap: 8px;
+       padding: 10px 18px;
+       background-color: #f0f2f5;
+       border: 2px solid transparent;
+       border-radius: 50px;
+       cursor: pointer;
+       transition: all 0.2s ease;
+       font-weight: 500;
+       color: #444;
+       user-select: none;
+}
+
+.choice-chip input {
+       display: none;
+       /* Hide default radio/checkbox */
+}
+
+/* Active State */
+.choice-chip.active {
+       background-color: #e3f2fd;
+       border-color: var(--primary-color);
+       color: var(--primary-color);
+       font-weight: 600;
+       box-shadow: 0 2px 5px rgba(0, 123, 255, 0.15);
+}
+
+.choice-chip:hover {
+       background-color: #e9ecef;
+}
+
+/* General Form Styles */
+.form-group {
+       margin-bottom: 1.2rem;
+}
+
+.form-group label {
+       font-weight: 600;
+       color: #343a40;
+       margin-bottom: 5px;
+       display: block;
+}
+
+.form-grid {
+       display: grid;
+       grid-template-columns: 1fr 1fr;
+       gap: 20px;
+}
+
+.submit-btn {
+       width: 100%;
+       padding: 14px;
+       background-color: var(--primary-color);
+       color: white;
+       border: none;
+       font-size: 1.1rem;
+       font-weight: 600;
+       border-radius: 8px;
+       cursor: pointer;
+       transition: background 0.3s;
+       background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+}
+
+.submit-btn:hover {
+       transform: translateY(-2px);
+       box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+}
+
+/* List Styles */
+.prescription-list {
+       list-style: none;
+       padding: 0;
+}
+
+.prescription-item {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       padding: 15px;
+       border-bottom: 1px solid #eee;
+}
+
+.prescription-item:last-child {
+       border-bottom: none;
+}
+
+.pres-info strong {
+       display: block;
+       font-size: 1.1rem;
+       color: var(--text-dark);
+}
+
+.pres-dosage {
+       color: #666;
+       font-size: 0.95rem;
+}
+
+/* Delete Button */
+.pres-actions {
+       display: flex;
+       align-items: center;
+       gap: 15px;
+}
+
+.delete-btn {
+       background: none;
+       border: none;
+       cursor: pointer;
+       font-size: 1.2rem;
+       padding: 5px;
+       border-radius: 50%;
+       transition: background 0.2s;
+}
+
+.delete-btn:hover {
+       background-color: #ffebee;
+}
+
+.pres-dates {
+       font-size: 0.85rem;
+       color: #999;
+}

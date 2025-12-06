@@ -9,7 +9,7 @@
 // const getOrCreateMedicineId = async (name) => {
 //     // 1. Check if medicine exists
 //     let [rows] = await dbPool.promise().query('SELECT medicine_id FROM medicines WHERE name = ?', [name]);
-    
+
 //     if (rows.length > 0) {
 //         return rows[0].medicine_id;
 //     }
@@ -51,7 +51,7 @@
 //             'daily', // For simplicity in this phase, we use 'daily'
 //             null
 //         ]);
-        
+
 //         const scheduleQuery = 'INSERT INTO recurring_schedules (prescription_id, time_of_day, frequency_type, frequency_detail) VALUES ?';
 //         await connection.query(scheduleQuery, [scheduleValues]);
 
@@ -74,7 +74,7 @@
 //  */
 // exports.getPrescriptions = async (req, res) => {
 //     const userId = req.userId;
-    
+
 //     try {
 //         // Join prescriptions with medicine names
 //         const query = `
@@ -89,7 +89,7 @@
 //             WHERE p.user_id = ? AND p.is_active = TRUE
 //         `;
 //         const [prescriptions] = await dbPool.promise().query(query, [userId]);
-        
+
 //         res.json(prescriptions);
 //     } catch (error) {
 //         console.error('Error fetching prescriptions:', error);
@@ -110,7 +110,7 @@ const { dbPool } = require('../config/db');
 const getOrCreateMedicineId = async (name) => {
     // 1. Check if medicine exists
     let [rows] = await dbPool.promise().query('SELECT medicine_id FROM medicines WHERE name = ?', [name]);
-    
+
     if (rows.length > 0) {
         return rows[0].medicine_id;
     }
@@ -147,12 +147,12 @@ exports.addPrescription = async (req, res) => {
 
         // 3. Insert Recurring Schedules
         const scheduleValues = scheduleTimes.map(time => [
-            prescription_id, 
-            time, 
+            prescription_id,
+            time,
             'daily', // For simplicity in this phase, we use 'daily'
             null
         ]);
-        
+
         const scheduleQuery = 'INSERT INTO recurring_schedules (prescription_id, time_of_day, frequency_type, frequency_detail) VALUES ?';
         await connection.query(scheduleQuery, [scheduleValues]);
 
@@ -175,7 +175,7 @@ exports.addPrescription = async (req, res) => {
  */
 exports.getPrescriptions = async (req, res) => {
     const userId = req.userId;
-    
+
     try {
         // Join prescriptions with medicine names
         const query = `
@@ -190,10 +190,35 @@ exports.getPrescriptions = async (req, res) => {
             WHERE p.user_id = ? AND p.is_active = TRUE
         `;
         const [prescriptions] = await dbPool.promise().query(query, [userId]);
-        
+
         res.json(prescriptions);
     } catch (error) {
         console.error('Error fetching prescriptions:', error);
         res.status(500).json({ message: 'Failed to retrieve prescriptions.' });
+    }
+};
+
+/**
+ * DELETE /api/prescriptions/:id
+ * Soft deletes a prescription by setting is_active = FALSE
+ */
+exports.deletePrescription = async (req, res) => {
+    const userId = req.userId;
+    const prescriptionId = req.params.id;
+
+    try {
+        // Convert string ID to number to avoid SQL injection issues if not handled by driver (though mysql2 handles it)
+        // Also ensure the prescription belongs to the user for security
+        const query = 'UPDATE user_prescriptions SET is_active = FALSE WHERE prescription_id = ? AND user_id = ?';
+        const [result] = await dbPool.promise().query(query, [prescriptionId, userId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Prescription not found or unauthorized.' });
+        }
+
+        res.json({ message: 'Prescription deleted successfully.' });
+    } catch (error) {
+        console.error('Error deleting prescription:', error);
+        res.status(500).json({ message: 'Failed to delete prescription.' });
     }
 };

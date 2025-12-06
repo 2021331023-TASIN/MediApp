@@ -143,6 +143,8 @@ import Home from './components/Home';
 import Register from './components/Register';
 import Login from './components/Login';
 import Prescriptions from './components/Prescriptions';
+
+import './components/Prescriptions.css'; // Import Prescription styles
 import { useAuth } from './context/AuthContext';
 
 // --- UPDATED Dashboard Component for Modern UX ---
@@ -248,6 +250,7 @@ function App() {
             {/* Protected Routes */}
             <Route path="/dashboard" element={<ProtectedRoute element={Dashboard} />} />
             <Route path="/prescriptions" element={<ProtectedRoute element={Prescriptions} />} />
+
 
             {/* Fallback for unknown paths */}
             <Route path="*" element={<h1>404 - Page Not Found</h1>} />

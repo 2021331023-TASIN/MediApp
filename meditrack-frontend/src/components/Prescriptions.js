@@ -1,160 +1,7 @@
-// // frontend/src/components/Prescriptions.js
-
-// import React, { useState, useEffect } from 'react';
-// import { useAuth } from '../context/AuthContext';
-// import { Navigate } from 'react-router-dom';
-
-// const Prescriptions = () => {
-//     const { isAuthenticated, authenticatedRequest, user } = useAuth();
-//     const [prescriptions, setPrescriptions] = useState([]);
-//     const [loading, setLoading] = useState(true);
-//     const [error, setError] = useState(null);
-
-//     // Form states for adding a new prescription
-//     const [medicineName, setMedicineName] = useState('');
-//     const [dosage, setDosage] = useState('');
-//     const [startDate, setStartDate] = useState('');
-//     const [endDate, setEndDate] = useState('');
-//     // Schedule states (simplified for frontend demo)
-//     const [scheduleTimes, setScheduleTimes] = useState(['08:00', '20:00']); 
-//     const [formLoading, setFormLoading] = useState(false);
-
-//     // --- Data Fetching ---
-//     const fetchPrescriptions = async () => {
-//         if (!user) return; // Wait for user data
-//         setLoading(true);
-//         try {
-//             const data = await authenticatedRequest('get', '/prescriptions');
-//             setPrescriptions(data);
-//         } catch (err) {
-//             setError(err.toString());
-//         } finally {
-//             setLoading(false);
-//         }
-//     };
-
-//     useEffect(() => {
-//         // If the user is authenticated, fetch their prescriptions
-//         if (isAuthenticated && user) {
-//             fetchPrescriptions();
-//         }
-//     }, [isAuthenticated, user]); 
-
-//     if (!isAuthenticated) {
-//         return <Navigate to="/login" replace />;
-//     }
-
-//     // --- Form Handling ---
-//     const handleAddPrescription = async (e) => {
-//         e.preventDefault();
-//         setFormLoading(true);
-//         setError(null);
-
-//         const newPrescription = {
-//             medicineName,
-//             dosage,
-//             startDate,
-//             endDate: endDate || null, // Allow null for ongoing meds
-//             scheduleTimes, // Array of strings (e.g., ['08:00', '16:00'])
-//         };
-
-//         try {
-//             await authenticatedRequest('post', '/prescriptions', newPrescription);
-//             alert('Prescription added successfully!');
-//             // Clear form and refresh list
-//             setMedicineName('');
-//             setDosage('');
-//             setStartDate('');
-//             setEndDate('');
-//             setScheduleTimes(['08:00', '20:00']);
-//             fetchPrescriptions();
-
-//         } catch (err) {
-//             setError(err.toString());
-//         } finally {
-//             setFormLoading(false);
-//         }
-//     };
-    
-//     // Simple helper to add/remove schedule times
-//     const handleScheduleChange = (index, value) => {
-//         const newTimes = [...scheduleTimes];
-//         newTimes[index] = value;
-//         setScheduleTimes(newTimes);
-//     };
-
-//     const addScheduleTime = () => setScheduleTimes([...scheduleTimes, '']);
-//     const removeScheduleTime = (index) => {
-//         setScheduleTimes(scheduleTimes.filter((_, i) => i !== index));
-//     };
-
-
-//     // --- Render ---
-//     return (
-//         <div className="container">
-//             <h2>Manage Prescriptions</h2>
-            
-//             {/* Add Prescription Form */}
-//             <div className="card add-form">
-//                 <h3>Add New Medication</h3>
-//                 <form onSubmit={handleAddPrescription}>
-//                     {error && <p className="error-message">{error}</p>}
-                    
-//                     <input type="text" placeholder="Medicine Name (e.g., Ibuprofen)" value={medicineName} onChange={(e) => setMedicineName(e.target.value)} required />
-//                     <input type="text" placeholder="Dosage (e.g., 20mg, 1 tablet)" value={dosage} onChange={(e) => setDosage(e.target.value)} required />
-//                     <input type="date" placeholder="Start Date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
-//                     <input type="date" placeholder="End Date (Optional)" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-                    
-//                     <h4>Schedule Times (e.g., 08:00)</h4>
-//                     {scheduleTimes.map((time, index) => (
-//                         <div key={index} className="schedule-input-group">
-//                             <input
-//                                 type="time"
-//                                 value={time}
-//                                 onChange={(e) => handleScheduleChange(index, e.target.value)}
-//                                 required
-//                             />
-//                             <button type="button" onClick={() => removeScheduleTime(index)} disabled={scheduleTimes.length === 1}>Remove</button>
-//                         </div>
-//                     ))}
-//                     <button type="button" onClick={addScheduleTime}>+ Add Time</button>
-                    
-//                     <button type="submit" disabled={formLoading}>
-//                         {formLoading ? 'Adding...' : 'Save Prescription'}
-//                     </button>
-//                 </form>
-//             </div>
-
-//             {/* View Existing Prescriptions */}
-//             <div className="card list-view">
-//                 <h3>Current Medications</h3>
-//                 {loading && <p>Loading prescriptions...</p>}
-//                 {!loading && prescriptions.length === 0 && <p>No active prescriptions found. Add one above!</p>}
-                
-//                 {!loading && prescriptions.length > 0 && (
-//                     <ul>
-//                         {prescriptions.map(p => (
-//                             <li key={p.prescription_id}>
-//                                 <strong>{p.name}</strong> - {p.dosage} 
-//                                 <span> (Start: {p.start_date})</span>
-//                             </li>
-//                         ))}
-//                     </ul>
-//                 )}
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default Prescriptions;
-
-
-
-// frontend/src/components/Prescriptions.js
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
+import './Prescriptions.css'; // Assuming you might want specific styles, though we'll use inline or App.css for now
 
 const Prescriptions = () => {
     const { isAuthenticated, authenticatedRequest, user } = useAuth();
@@ -162,18 +9,24 @@ const Prescriptions = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Form states for adding a new prescription
+    // Form states
     const [medicineName, setMedicineName] = useState('');
-    const [dosage, setDosage] = useState('');
+    const [dosageAmount, setDosageAmount] = useState(''); // e.g. "10mg"
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    // Schedule states (simplified for frontend demo)
-    const [scheduleTimes, setScheduleTimes] = useState(['08:00', '20:00']); 
+
+    // New specific states
+    const [selectedTimes, setSelectedTimes] = useState({
+        morning: false,
+        noon: false,
+        night: false
+    });
+    const [mealTiming, setMealTiming] = useState('after'); // 'before' or 'after'
     const [formLoading, setFormLoading] = useState(false);
 
     // --- Data Fetching ---
-    const fetchPrescriptions = async () => {
-        if (!user) return; // Wait for user data
+    const fetchPrescriptions = React.useCallback(async () => {
+        if (!user) return;
         setLoading(true);
         try {
             const data = await authenticatedRequest('get', '/prescriptions');
@@ -183,42 +36,68 @@ const Prescriptions = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user, authenticatedRequest]);
 
     useEffect(() => {
-        // If the user is authenticated, fetch their prescriptions
         if (isAuthenticated && user) {
             fetchPrescriptions();
         }
-    }, [isAuthenticated, user]); 
+    }, [isAuthenticated, user, fetchPrescriptions]);
 
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
 
     // --- Form Handling ---
+    const handleTimeChange = (time) => {
+        setSelectedTimes(prev => ({
+            ...prev,
+            [time]: !prev[time]
+        }));
+    };
+
     const handleAddPrescription = async (e) => {
         e.preventDefault();
         setFormLoading(true);
         setError(null);
 
+        // 1. Construct Schedule Times Array
+        const scheduleTimes = [];
+        if (selectedTimes.morning) scheduleTimes.push('08:00');
+        if (selectedTimes.noon) scheduleTimes.push('13:00');
+        if (selectedTimes.night) scheduleTimes.push('21:00');
+
+        if (scheduleTimes.length === 0) {
+            setError("Please select at least one time (Morning, Noon, or Night).");
+            setFormLoading(false);
+            return;
+        }
+
+        // 2. Construct Combined Dosage String
+        // Format: "10mg - After Meal"
+        const mealText = mealTiming === 'before' ? 'Before Meal' : 'After Meal';
+        const finalDosage = `${dosageAmount} - ${mealText}`;
+
         const newPrescription = {
             medicineName,
-            dosage,
+            dosage: finalDosage,
             startDate,
-            endDate: endDate || null, // Allow null for ongoing meds
-            scheduleTimes, // Array of strings (e.g., ['08:00', '16:00'])
+            endDate: endDate || null,
+            scheduleTimes,
         };
 
         try {
             await authenticatedRequest('post', '/prescriptions', newPrescription);
             alert('Prescription added successfully!');
-            // Clear form and refresh list
+
+            // Reset Form
             setMedicineName('');
-            setDosage('');
+            setDosageAmount('');
             setStartDate('');
             setEndDate('');
-            setScheduleTimes(['08:00', '20:00']);
+            setSelectedTimes({ morning: false, noon: false, night: false });
+            setMealTiming('after');
+
             fetchPrescriptions();
 
         } catch (err) {
@@ -227,52 +106,122 @@ const Prescriptions = () => {
             setFormLoading(false);
         }
     };
-    
-    // Simple helper to add/remove schedule times
-    const handleScheduleChange = (index, value) => {
-        const newTimes = [...scheduleTimes];
-        newTimes[index] = value;
-        setScheduleTimes(newTimes);
-    };
 
-    const addScheduleTime = () => setScheduleTimes([...scheduleTimes, '']);
-    const removeScheduleTime = (index) => {
-        setScheduleTimes(scheduleTimes.filter((_, i) => i !== index));
-    };
+    // --- Delete Handling ---
+    const handleDelete = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this prescription?")) return;
 
+        try {
+            await authenticatedRequest('delete', `/prescriptions/${id}`);
+            // Optimistic update or refetch
+            setPrescriptions(prev => prev.filter(p => p.prescription_id !== id));
+        } catch (err) {
+            alert("Failed to delete: " + err.toString());
+        }
+    };
 
     // --- Render ---
     return (
         <div className="container">
             <h2>Manage Prescriptions</h2>
-            
+
             {/* Add Prescription Form */}
             <div className="card add-form">
                 <h3>Add New Medication</h3>
                 <form onSubmit={handleAddPrescription}>
                     {error && <p className="error-message">{error}</p>}
-                    
-                    <input type="text" placeholder="Medicine Name (e.g., Ibuprofen)" value={medicineName} onChange={(e) => setMedicineName(e.target.value)} required />
-                    <input type="text" placeholder="Dosage (e.g., 20mg, 1 tablet)" value={dosage} onChange={(e) => setDosage(e.target.value)} required />
-                    <input type="date" placeholder="Start Date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
-                    <input type="date" placeholder="End Date (Optional)" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-                    
-                    <h4>Schedule Times (e.g., 08:00)</h4>
-                    {scheduleTimes.map((time, index) => (
-                        <div key={index} className="schedule-input-group">
+
+                    <div className="form-group">
+                        <label>Medicine Name</label>
+                        <input
+                            type="text"
+                            placeholder="e.g., Metformin"
+                            value={medicineName}
+                            onChange={(e) => setMedicineName(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className="form-grid">
+                        <div className="form-group">
+                            <label>Dosage Amount</label>
                             <input
-                                type="time"
-                                value={time}
-                                onChange={(e) => handleScheduleChange(index, e.target.value)}
+                                type="text"
+                                placeholder="e.g., 500mg"
+                                value={dosageAmount}
+                                onChange={(e) => setDosageAmount(e.target.value)}
                                 required
                             />
-                            <button type="button" onClick={() => removeScheduleTime(index)} disabled={scheduleTimes.length === 1}>Remove</button>
                         </div>
-                    ))}
-                    <button type="button" onClick={addScheduleTime}>+ Add Time</button>
-                    
-                    <button type="submit" disabled={formLoading}>
-                        {formLoading ? 'Adding...' : 'Save Prescription'}
+                        <div className="form-group">
+                            <label>Start From</label>
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-group section-group">
+                        <label className="section-label">When to take?</label>
+                        <div className="checkbox-group">
+                            <label className={`choice-chip ${selectedTimes.morning ? 'active' : ''}`}>
+                                <input
+                                    type="checkbox"
+                                    checked={selectedTimes.morning}
+                                    onChange={() => handleTimeChange('morning')}
+                                />
+                                🌅 Morning
+                            </label>
+                            <label className={`choice-chip ${selectedTimes.noon ? 'active' : ''}`}>
+                                <input
+                                    type="checkbox"
+                                    checked={selectedTimes.noon}
+                                    onChange={() => handleTimeChange('noon')}
+                                />
+                                ☀️ Noon
+                            </label>
+                            <label className={`choice-chip ${selectedTimes.night ? 'active' : ''}`}>
+                                <input
+                                    type="checkbox"
+                                    checked={selectedTimes.night}
+                                    onChange={() => handleTimeChange('night')}
+                                />
+                                🌙 Night
+                            </label>
+                        </div>
+                    </div>
+
+                    <div className="form-group section-group">
+                        <label className="section-label">Meal Instruction</label>
+                        <div className="radio-group">
+                            <label className={`choice-chip ${mealTiming === 'before' ? 'active' : ''}`}>
+                                <input
+                                    type="radio"
+                                    name="mealTiming"
+                                    value="before"
+                                    checked={mealTiming === 'before'}
+                                    onChange={(e) => setMealTiming(e.target.value)}
+                                />
+                                🍽️ Before Meal
+                            </label>
+                            <label className={`choice-chip ${mealTiming === 'after' ? 'active' : ''}`}>
+                                <input
+                                    type="radio"
+                                    name="mealTiming"
+                                    value="after"
+                                    checked={mealTiming === 'after'}
+                                    onChange={(e) => setMealTiming(e.target.value)}
+                                />
+                                😋 After Meal
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" className="submit-btn" disabled={formLoading}>
+                        {formLoading ? 'Saving...' : 'Save Prescription'}
                     </button>
                 </form>
             </div>
@@ -281,19 +230,35 @@ const Prescriptions = () => {
             <div className="card list-view">
                 <h3>Current Medications</h3>
                 {loading && <p>Loading prescriptions...</p>}
-                {!loading && prescriptions.length === 0 && <p>No active prescriptions found. Add one above!</p>}
-                
+                {!loading && prescriptions.length === 0 && <p>No active prescriptions found.</p>}
+
                 {!loading && prescriptions.length > 0 && (
-                    <ul>
+                    <ul className="prescription-list">
                         {prescriptions.map(p => (
-                            <li key={p.prescription_id}>
-                                <strong>{p.name}</strong> - {p.dosage} 
-                                <span> (Start: {p.start_date})</span>
+                            <li key={p.prescription_id} className="prescription-item">
+                                <div className="pres-info">
+                                    <strong>{p.name}</strong>
+                                    <span className="pres-dosage">{p.dosage}</span>
+                                </div>
+                                <div className="pres-actions">
+                                    <div className="pres-dates">
+                                        Start: {new Date(p.start_date).toLocaleDateString()}
+                                    </div>
+                                    <button
+                                        className="delete-btn"
+                                        onClick={() => handleDelete(p.prescription_id)}
+                                        title="Delete Prescription"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
                             </li>
                         ))}
                     </ul>
                 )}
             </div>
+
+
         </div>
     );
 };
