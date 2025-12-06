@@ -21,12 +21,16 @@ const Prescriptions = () => {
         noon: false,
         night: false
     });
-    const [mealTiming, setMealTiming] = useState('after'); // 'before' or 'after'
+    const [mealTiming, setMealTiming] = useState('after');
+    const [initialQuantity, setInitialQuantity] = useState('');
+    const [pillsPerDose, setPillsPerDose] = useState('1');
+    const [instructions, setInstructions] = useState('');
     const [formLoading, setFormLoading] = useState(false);
 
     // Duration State
     const [durationValue, setDurationValue] = useState('');
     const [durationUnit, setDurationUnit] = useState('days');
+    const [dosesPerDay, setDosesPerDay] = useState('');
 
     // Auto-calculate End Date
     useEffect(() => {
@@ -100,12 +104,45 @@ const Prescriptions = () => {
         const mealText = mealTiming === 'before' ? 'Before Meal' : 'After Meal';
         const finalDosage = `${dosageAmount} - ${mealText}`;
 
+        // Calculate Duration in Days and End Date
+        let calculatedDurationDays = 0;
+        let finalDosesPerDay = parseInt(dosesPerDay) || 1;
+
+        // If user didn't input doses per day, try to infer from checkboxes
+        if (!dosesPerDay) {
+            const times = [];
+            if (selectedTimes.morning) times.push('08:00');
+            if (selectedTimes.noon) times.push('13:00');
+            if (selectedTimes.night) times.push('20:00');
+            if (times.length > 0) finalDosesPerDay = times.length;
+        }
+
+        if (durationValue) {
+            const val = parseInt(durationValue);
+            if (durationUnit === 'days') calculatedDurationDays = val * 1;
+            else if (durationUnit === 'weeks') calculatedDurationDays = val * 7;
+            else if (durationUnit === 'months') calculatedDurationDays = val * 30;
+        }
+
+        let calculatedEndDate = null;
+        if (startDate && calculatedDurationDays > 0) {
+            const start = new Date(startDate);
+            const end = new Date(start);
+            end.setDate(start.getDate() + calculatedDurationDays);
+            calculatedEndDate = end.toISOString().slice(0, 10);
+        }
+
         const newPrescription = {
             medicineName,
             dosage: finalDosage,
             startDate,
-            endDate: endDate || null,
+            endDate: calculatedEndDate,
             scheduleTimes,
+            pillsPerDose: parseInt(pillsPerDose) || 1,
+            initialQuantity: initialQuantity ? parseInt(initialQuantity) : null,
+            instructions,
+            dosesPerDay: finalDosesPerDay,
+            durationDays: calculatedDurationDays
         };
 
         try {
@@ -119,6 +156,12 @@ const Prescriptions = () => {
             setEndDate('');
             setSelectedTimes({ morning: false, noon: false, night: false });
             setMealTiming('after');
+            setInitialQuantity('');
+            setPillsPerDose('1');
+            setDurationValue('');
+            setDurationUnit('days');
+            setDosesPerDay('');
+            setInstructions('');
 
             fetchPrescriptions();
 
@@ -187,6 +230,40 @@ const Prescriptions = () => {
                         </div>
                     </div>
 
+                    <div className="form-grid">
+                        <div className="form-group">
+                            <label>Total Quantity (Pills)</label>
+                            <input
+                                type="number"
+                                placeholder="e.g., 30"
+                                value={initialQuantity}
+                                onChange={(e) => setInitialQuantity(e.target.value)}
+                                min="1"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Pills Per Dose</label>
+                            <input
+                                type="number"
+                                placeholder="1"
+                                value={pillsPerDose}
+                                onChange={(e) => setPillsPerDose(e.target.value)}
+                                min="1"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Instructions / Notes</label>
+                        <textarea
+                            placeholder="e.g. Take with plenty of water..."
+                            value={instructions}
+                            onChange={(e) => setInstructions(e.target.value)}
+                            style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                        />
+                    </div>
+
                     <div className="form-group section-group">
                         <label className="section-label">Duration</label>
                         <div className="duration-input-wrapper">
@@ -207,6 +284,21 @@ const Prescriptions = () => {
                             </select>
                         </div>
                     </div>
+
+                    <div className="form-group">
+                        <label>Doses Per Day (Frequency)</label>
+                        <input
+                            type="number"
+                            placeholder="e.g. 3"
+                            value={dosesPerDay}
+                            onChange={(e) => setDosesPerDay(e.target.value)}
+                            min="1"
+                        />
+                        <small style={{ color: '#777', display: 'block', marginTop: '5px' }}>
+                            Needed to calculate Total Course Doses (Total = Duration * Frequency)
+                        </small>
+                    </div>
+
 
                     <div className="form-group section-group">
                         <label className="section-label">When to take?</label>
@@ -267,54 +359,56 @@ const Prescriptions = () => {
                     <button type="submit" className="submit-btn" disabled={formLoading}>
                         {formLoading ? 'Saving...' : 'Save Prescription'}
                     </button>
-                </form>
-            </div>
+                </form >
+            </div >
 
             {/* View Existing Prescriptions */}
-            <div className="card list-view">
+            < div className="card list-view" >
                 <h3>Current Medications</h3>
                 {loading && <p>Loading prescriptions...</p>}
                 {!loading && prescriptions.length === 0 && <p>No active prescriptions found.</p>}
 
-                {!loading && prescriptions.length > 0 && (
-                    <ul className="prescription-list">
-                        {prescriptions.map(p => (
-                            <li key={p.prescription_id} className="prescription-item">
-                                <div className="pres-info">
-                                    <strong>{p.name}</strong>
-                                    <span className="pres-dosage">{p.dosage}</span>
-                                    <span className="pres-duration" style={{ fontSize: '0.85rem', color: '#666', display: 'block', marginTop: '2px' }}>
-                                        Duration: {(() => {
-                                            if (!p.end_date) return 'Ongoing';
-                                            const start = new Date(p.start_date);
-                                            const end = new Date(p.end_date);
-                                            const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-                                            if (diffDays % 30 === 0) return `${diffDays / 30} Month(s)`;
-                                            if (diffDays % 7 === 0) return `${diffDays / 7} Week(s)`;
-                                            return `${diffDays} Days`;
-                                        })()}
-                                    </span>
-                                </div>
-                                <div className="pres-actions">
-                                    <div className="pres-dates">
-                                        Start: {new Date(p.start_date).toLocaleDateString()}
+                {
+                    !loading && prescriptions.length > 0 && (
+                        <ul className="prescription-list">
+                            {prescriptions.map(p => (
+                                <li key={p.prescription_id} className="prescription-item">
+                                    <div className="pres-info">
+                                        <strong>{p.name}</strong>
+                                        <span className="pres-dosage">{p.dosage}</span>
+                                        <span className="pres-duration" style={{ fontSize: '0.85rem', color: '#666', display: 'block', marginTop: '2px' }}>
+                                            Duration: {(() => {
+                                                if (!p.end_date) return 'Ongoing';
+                                                const start = new Date(p.start_date);
+                                                const end = new Date(p.end_date);
+                                                const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+                                                if (diffDays % 30 === 0) return `${diffDays / 30} Month(s)`;
+                                                if (diffDays % 7 === 0) return `${diffDays / 7} Week(s)`;
+                                                return `${diffDays} Days`;
+                                            })()}
+                                        </span>
                                     </div>
-                                    <button
-                                        className="delete-btn"
-                                        onClick={() => handleDelete(p.prescription_id)}
-                                        title="Delete Prescription"
-                                    >
-                                        🗑️
-                                    </button>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </div>
+                                    <div className="pres-actions">
+                                        <div className="pres-dates">
+                                            Start: {new Date(p.start_date).toLocaleDateString()}
+                                        </div>
+                                        <button
+                                            className="delete-btn"
+                                            onClick={() => handleDelete(p.prescription_id)}
+                                            title="Delete Prescription"
+                                        >
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    )
+                }
+            </div >
 
 
-        </div>
+        </div >
     );
 };
 

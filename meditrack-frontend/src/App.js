@@ -1,137 +1,3 @@
-// // frontend/src/App.js
-
-// import React from 'react';
-// import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-// import './App.css'; 
-
-// // Components
-// import Register from './components/Register'; 
-// import Login from './components/Login'; 
-// import Prescriptions from './components/Prescriptions'; 
-// import { useAuth } from './context/AuthContext'; 
-
-// // --- Placeholder Components ---
-// // Home component updated to use the new CSS class
-// const Home = () => (
-//     <h1 className="main-heading">Welcome to MediTrack! Simplify your medication.</h1>
-// );
-
-// // --- UPDATED Dashboard Component for Modern UX ---
-// const Dashboard = () => {
-//   const { user, logout } = useAuth();
-//   if (!user) return <Navigate to="/login" replace />;
-
-//   return (
-//     <div className="container dashboard-grid">
-//       <h2>Welcome back, {user.name}!</h2>
-
-//       {/* --- Quick Status Cards (Flexible Grid) --- */}
-//       <div className="status-cards">
-//         <div className="card status-card primary-card">
-//           <h3>Today's Doses</h3>
-//           {/* Placeholder for now; will be dynamic later */}
-//           <p className="big-number">4</p> 
-//           <span>Doses remaining</span>
-//         </div>
-
-//         <div className="card status-card secondary-card">
-//           <h3>Total Prescriptions</h3>
-//           {/* Placeholder for now; will be dynamic later */}
-//           <p className="big-number">6</p> 
-//           <span>Active medications</span>
-//         </div>
-//       </div>
-
-//       {/* --- Quick Action Card --- */}
-//       <div className="quick-actions card">
-//           <h3>Quick Actions</h3>
-//           <div className="action-buttons">
-//             <Link to="/prescriptions" className="button action-button primary-action">
-//                 Manage Prescriptions
-//             </Link>
-//             {/* Added a link placeholder for future History functionality */}
-//             <Link to="/history" className="button action-button secondary-action">
-//                 View History
-//             </Link>
-//           </div>
-//       </div>
-
-//       {/* --- Notification Panel (Alert Styling) --- */}
-//       <div className="card notification-panel">
-//           <h3>Reminders & Alerts</h3>
-//           {/* Placeholder for alert */}
-//           <p className="alert-text">💊 Don't forget your next dose at 08:00 AM.</p>
-//           <button onClick={logout} className="nav-button logout-btn">Logout</button>
-//       </div>
-
-//     </div>
-//   );
-// };
-
-// // A protective route wrapper to ensure only logged-in users access certain pages
-// const ProtectedRoute = ({ element: Element, ...rest }) => {
-//     const { isAuthenticated, loading } = useAuth();
-
-//     if (loading) {
-//         return <div>Loading authentication...</div>;
-//     }
-
-//     return isAuthenticated ? <Element {...rest} /> : <Navigate to="/login" replace />;
-// };
-
-
-// function App() {
-//   const { isAuthenticated, logout } = useAuth();
-
-//   return (
-//     <Router>
-//       <div className="App">
-//         <header>
-//           <nav className="navbar">
-//             <Link to="/" className="nav-logo">MediTrack</Link>
-//             <div className="nav-links">
-//                 <Link to="/">Home</Link>
-
-//                 {/* Conditional Navigation Links */}
-//                 {isAuthenticated ? (
-//                     <>
-//                         <Link to="/dashboard">Dashboard</Link>
-//                         <Link to="/prescriptions">Prescriptions</Link>
-//                         <button onClick={logout} className="nav-button">Logout</button>
-//                     </>
-//                 ) : (
-//                     <>
-//                         <Link to="/login">Login</Link>
-//                         <Link to="/register">Register</Link>
-//                     </>
-//                 )}
-//             </div>
-//           </nav>
-//         </header>
-
-//         <main>
-//           {/* ALL <Route> elements must be INSIDE this <Routes> tag */}
-//           <Routes>
-//             <Route path="/" element={<Home />} />
-//             <Route path="/register" element={<Register />} />
-//             <Route path="/login" element={<Login />} />
-
-//             {/* Protected Routes */}
-//             <Route path="/dashboard" element={<ProtectedRoute element={Dashboard} />} />
-//             <Route path="/prescriptions" element={<ProtectedRoute element={Prescriptions} />} />
-
-//             {/* Fallback for unknown paths */}
-//             <Route path="*" element={<h1>404 - Page Not Found</h1>} />
-//           </Routes>
-//         </main>
-//       </div>
-//     </Router>
-//   );
-// }
-
-// export default App;
-
-
 // frontend/src/App.js
 
 import React from 'react';
@@ -151,7 +17,7 @@ import { useAuth } from './context/AuthContext';
 
 // --- UPDATED Dashboard Component for Modern UX ---
 const Dashboard = () => {
-  const { user, logout, authenticatedRequest } = useAuth();
+  const { user, authenticatedRequest } = useAuth();
   const [stats, setStats] = React.useState({ activePrescriptions: 0, dailyDoses: 0 });
   const [prescriptions, setPrescriptions] = React.useState([]);
   const [todaySchedules, setTodaySchedules] = React.useState([]);
@@ -169,31 +35,33 @@ const Dashboard = () => {
     }
   }, [authenticatedRequest]);
 
+  const fetchPrescriptionsList = React.useCallback(async () => {
+    try {
+      const presData = await authenticatedRequest('get', '/prescriptions');
+      setPrescriptions(presData);
+      setLoadingPrescriptions(false);
+    } catch (error) {
+      console.error("Failed to fetch prescriptions list", error);
+    }
+  }, [authenticatedRequest]);
+
+  const fetchStats = React.useCallback(async () => {
+    try {
+      const statsData = await authenticatedRequest('get', '/prescriptions/stats');
+      setStats(statsData);
+      setLoadingStats(false);
+    } catch (error) {
+      console.error("Failed to fetch stats", error);
+    }
+  }, [authenticatedRequest]);
+
   React.useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch Stats
-        const statsData = await authenticatedRequest('get', '/prescriptions/stats');
-        setStats(statsData);
-        setLoadingStats(false);
-
-        // Fetch Prescriptions
-        const presData = await authenticatedRequest('get', '/prescriptions');
-        setPrescriptions(presData);
-        setLoadingPrescriptions(false);
-
-        // Fetch Today's Schedules (For Alarms & Checklist)
-        fetchTodaySchedules();
-
-      } catch (error) {
-        console.error("Failed to fetch dashboard data", error);
-        setLoadingStats(false);
-        setLoadingPrescriptions(false);
-        setLoadingSchedules(false);
-      }
-    };
-    if (user) fetchData();
-  }, [user, authenticatedRequest, fetchTodaySchedules]);
+    if (user) {
+      fetchStats();
+      fetchPrescriptionsList();
+      fetchTodaySchedules();
+    }
+  }, [user, fetchStats, fetchPrescriptionsList, fetchTodaySchedules]);
 
   // --- ALARM SYSTEM ---
   React.useEffect(() => {
@@ -233,7 +101,10 @@ const Dashboard = () => {
     try {
       await authenticatedRequest('post', '/prescriptions/take', { prescriptionId, scheduleTime });
       // Refresh list to update UI
+      // Refresh list and stats to update UI (reduce quantity in all views)
       fetchTodaySchedules();
+      fetchPrescriptionsList();
+      fetchStats();
     } catch (error) {
       console.error("Failed to mark dose as taken", error);
       alert("Failed to mark as taken.");
@@ -252,10 +123,10 @@ const Dashboard = () => {
           <div className="card checklist-card">
             <h3>✅ Today's Medicine</h3>
             {loadingSchedules ? <p>Loading schedule...</p> : (
-              todaySchedules.length === 0 ? <p>No medicines scheduled for today.</p> : (
+              todaySchedules.filter(s => !s.is_taken).length === 0 ? <p>No pending medicines for now.</p> : (
                 <ul className="checklist">
-                  {todaySchedules.map((schedule, index) => (
-                    <li key={`${schedule.prescription_id}-${index}`} className={`checklist-item ${schedule.is_taken ? 'taken' : ''}`}>
+                  {todaySchedules.filter(s => !s.is_taken).map((schedule, index) => (
+                    <li key={`${schedule.prescription_id}-${index}`} className="checklist-item">
                       <div className="checklist-info">
                         <span className="checklist-time">
                           {schedule.time_of_day.substring(0, 5)}
@@ -263,18 +134,21 @@ const Dashboard = () => {
                         <div className="checklist-drug">
                           <strong>{schedule.name}</strong>
                           <span>{schedule.dosage}</span>
+                          {schedule.current_quantity !== null && (
+                            <span style={{ fontSize: '0.8rem', color: schedule.current_quantity > 0 ? '#28a745' : '#dc3545' }}>
+                              {schedule.current_quantity > 0 ? `Qty: ${schedule.current_quantity}` : 'Out of Stock'}
+                            </span>
+                          )}
                         </div>
                       </div>
-                      {!schedule.is_taken ? (
-                        <button
-                          className="mark-taken-btn"
-                          onClick={() => handleMarkTaken(schedule.prescription_id, schedule.time_of_day)}
-                        >
-                          Mark as Taken
-                        </button>
-                      ) : (
-                        <span className="taken-badge">✓ Taken</span>
-                      )}
+                      <button
+                        className="mark-taken-btn"
+                        onClick={() => handleMarkTaken(schedule.prescription_id, schedule.time_of_day)}
+                        disabled={schedule.current_quantity === 0}
+                        style={{ cursor: schedule.current_quantity === 0 ? 'not-allowed' : 'pointer', opacity: schedule.current_quantity === 0 ? 0.5 : 1 }}
+                      >
+                        {schedule.current_quantity === 0 ? 'Refill' : 'Mark as Taken'}
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -288,35 +162,73 @@ const Dashboard = () => {
             {loadingPrescriptions ? <p>Loading...</p> : (
               prescriptions.length === 0 ? <p>No active prescriptions.</p> : (
                 <ul className="prescription-list">
-                  {prescriptions.map(p => (
-                    <li key={p.prescription_id} className="prescription-item">
-                      <div className="pres-info">
-                        <strong>{p.name}</strong>
-                        <span className="pres-dosage">{p.dosage}</span>
-                        <span className="pres-duration" style={{ fontSize: '0.85rem', color: '#666', display: 'block', marginTop: '2px' }}>
-                          Duration: {(() => {
-                            if (!p.end_date) return 'Ongoing';
-                            const start = new Date(p.start_date);
-                            const end = new Date(p.end_date);
-                            const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-                            if (diffDays % 30 === 0) return `${diffDays / 30} Month(s)`;
-                            if (diffDays % 7 === 0) return `${diffDays / 7} Week(s)`;
-                            return `${diffDays} Days`;
-                          })()}
-                        </span>
-                      </div>
-                      <div className="pres-actions">
-                        <div className="pres-dates">
-                          Start: {new Date(p.start_date).toLocaleDateString()}
+                  {prescriptions.map(p => {
+                    // Calculate Course Progress
+                    const totalDosesToTake = (p.duration_days && p.doses_per_day)
+                      ? (p.duration_days * p.doses_per_day)
+                      : null;
+
+                    const takenCount = p.total_taken || 0;
+
+                    let remainingDoses = null;
+                    if (totalDosesToTake !== null) {
+                      remainingDoses = Math.max(0, totalDosesToTake - takenCount);
+                    }
+
+                    return (
+                      <li key={p.prescription_id} className="prescription-item">
+                        <div className="pres-info" style={{ width: '100%' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                            <div>
+                              <strong style={{ fontSize: '1.2rem' }}>{p.name}</strong>
+                              <span className="pres-dosage" style={{ marginLeft: '10px', background: '#eef', padding: '2px 8px', borderRadius: '4px' }}>{p.dosage}</span>
+                            </div>
+                          </div>
+
+                          {/* Course Progress Section */}
+                          <div className="dose-progress-container" style={{
+                            background: '#f8f9fa',
+                            padding: '15px',
+                            borderRadius: '8px',
+                            marginTop: '5px',
+                            border: '1px solid #e9ecef'
+                          }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', textAlign: 'center' }}>
+                              <div>
+                                <span style={{ fontSize: '0.85rem', color: '#666', marginBottom: '5px', display: 'block' }}>Total Course</span>
+                                <strong style={{ fontSize: '1.4rem', color: '#007bff' }}>
+                                  {totalDosesToTake !== null ? totalDosesToTake : '∞'}
+                                </strong>
+                                <span style={{ fontSize: '0.7rem', color: '#999', display: 'block' }}>doses</span>
+                              </div>
+                              <div style={{ borderLeft: '1px solid #ddd', borderRight: '1px solid #ddd' }}>
+                                <span style={{ fontSize: '0.85rem', color: '#666', marginBottom: '5px', display: 'block' }}>Taken</span>
+                                <strong style={{ fontSize: '1.4rem', color: '#28a745' }}>{takenCount}</strong>
+                                <span style={{ fontSize: '0.7rem', color: '#999', display: 'block' }}>doses</span>
+                              </div>
+                              <div>
+                                <span style={{ fontSize: '0.85rem', color: '#666', marginBottom: '5px', display: 'block' }}>Remaining</span>
+                                <strong style={{ fontSize: '1.4rem', color: '#dc3545' }}>
+                                  {remainingDoses !== null ? remainingDoses : '∞'}
+                                </strong>
+                                <span style={{ fontSize: '0.7rem', color: '#999', display: 'block' }}>doses</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="pres-dates" style={{ marginTop: '12px', fontSize: '0.85rem', color: '#777', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Start: {new Date(p.start_date).toLocaleDateString()}</span>
+                            {p.end_date && <span>End: {new Date(p.end_date).toLocaleDateString()}</span>}
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               )
             )}
           </div>
-        </div>
+        </div >
 
         <div className="sidebar-column">
           {/* --- Quick Status Cards --- */}
@@ -351,8 +263,8 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

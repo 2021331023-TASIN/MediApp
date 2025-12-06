@@ -24,8 +24,19 @@ const getOrCreateMedicineId = async (name) => {
  * Adds a new prescription and its recurring schedules.
  */
 exports.addPrescription = async (req, res) => {
-    const { medicineName, dosage, startDate, endDate, scheduleTimes } = req.body;
-    const userId = req.userId; // Set by authMiddleware
+    const {
+        medicineName,
+        dosage,
+        startDate,
+        endDate,
+        scheduleTimes,
+        pillsPerDose = 1,
+        dosesPerDay = 1,
+        durationDays,
+        initialQuantity,
+        instructions
+    } = req.body;
+    const userId = req.userId;
 
     if (!medicineName || !dosage || !startDate || !scheduleTimes || scheduleTimes.length === 0) {
         return res.status(400).json({ message: 'Missing required prescription fields.' });
@@ -35,26 +46,43 @@ exports.addPrescription = async (req, res) => {
     await connection.beginTransaction();
 
     try {
-        // 1. Get or Create the Medicine
         const medicine_id = await getOrCreateMedicineId(medicineName);
 
-        // 2. Insert the User_Prescription
-        const presQuery = 'INSERT INTO user_prescriptions (user_id, medicine_id, dosage, start_date, end_date) VALUES (?, ?, ?, ?, ?)';
-        const [presResult] = await connection.query(presQuery, [userId, medicine_id, dosage, startDate, endDate]);
+        // Determine initial and current quantity
+        // If initialQuantity is provided, use it. Otherwise, null (tracking disabled/unknown)
+        const initQty = initialQuantity ? parseInt(initialQuantity) : null;
+        const currQty = initQty;
+
+        const presQuery = `
+            INSERT INTO user_prescriptions 
+            (user_id, medicine_id, dosage, start_date, end_date, pills_per_dose, doses_per_day, duration_days, initial_quantity, current_quantity, instructions) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        const [presResult] = await connection.query(presQuery, [
+            userId,
+            medicine_id,
+            dosage,
+            startDate,
+            endDate,
+            pillsPerDose,
+            dosesPerDay || scheduleTimes.length,
+            durationDays || 0,
+            initQty,
+            currQty,
+            instructions
+        ]);
         const prescription_id = presResult.insertId;
 
-        // 3. Insert Recurring Schedules
         const scheduleValues = scheduleTimes.map(time => [
             prescription_id,
             time,
-            'daily', // For simplicity in this phase, we use 'daily'
+            'daily',
             null
         ]);
 
         const scheduleQuery = 'INSERT INTO recurring_schedules (prescription_id, time_of_day, frequency_type, frequency_detail) VALUES ?';
         await connection.query(scheduleQuery, [scheduleValues]);
 
-        // 4. Commit and Respond
         await connection.commit();
         res.status(201).json({ message: 'Prescription added and schedules set.', prescription_id });
 
@@ -93,7 +121,11 @@ exports.getPrescriptions = async (req, res) => {
                 m.name, 
                 p.dosage, 
                 p.start_date, 
-                p.end_date 
+                p.end_date,
+                p.current_quantity,
+                p.duration_days,
+                p.doses_per_day,
+                (SELECT COUNT(*) FROM dose_history dh WHERE dh.prescription_id = p.prescription_id AND dh.is_taken = TRUE) as total_taken
             FROM user_prescriptions p
             JOIN medicines m ON p.medicine_id = m.medicine_id
             WHERE p.user_id = ? AND p.is_active = TRUE
@@ -211,13 +243,15 @@ exports.getTodaySchedules = async (req, res) => {
                 m.name, 
                 p.dosage, 
                 rs.time_of_day,
-                CASE WHEN dl.log_id IS NOT NULL THEN TRUE ELSE FALSE END as is_taken
+                p.current_quantity,
+                p.pills_per_dose,
+                CASE WHEN dh.dose_id IS NOT NULL THEN TRUE ELSE FALSE END as is_taken
             FROM user_prescriptions p
             JOIN medicines m ON p.medicine_id = m.medicine_id
             JOIN recurring_schedules rs ON p.prescription_id = rs.prescription_id
-            LEFT JOIN dose_logs dl ON p.prescription_id = dl.prescription_id 
-                                   AND dl.taken_date = ? 
-                                   AND dl.schedule_time = rs.time_of_day
+            LEFT JOIN dose_history dh ON p.prescription_id = dh.prescription_id 
+                                   AND DATE(dh.scheduled_time) = ? 
+                                   AND TIME(dh.scheduled_time) = rs.time_of_day
             WHERE p.user_id = ? AND p.is_active = TRUE
             ORDER BY rs.time_of_day ASC
         `;
@@ -242,22 +276,49 @@ exports.markDoseTaken = async (req, res) => {
     }
 
     const today = new Date().toISOString().slice(0, 10);
+    // Construct full scheduled datetime: YYYY-MM-DD HH:MM:SS
+    // Note: scheduleTime should be HH:MM or HH:MM:SS
+    const scheduledDateTime = `${today} ${scheduleTime}`;
+
+    const connection = await dbPool.promise().getConnection();
+    await connection.beginTransaction();
 
     try {
-        // Check if already taken to avoid duplicates
-        const checkQuery = 'SELECT log_id FROM dose_logs WHERE prescription_id = ? AND taken_date = ? AND schedule_time = ?';
-        const [existing] = await dbPool.promise().query(checkQuery, [prescriptionId, today, scheduleTime]);
+        // 1. Check if already taken (in dose_history)
+        const checkQuery = `
+            SELECT dose_id FROM dose_history 
+            WHERE prescription_id = ? 
+            AND DATE(scheduled_time) = ? 
+            AND TIME(scheduled_time) = ?
+        `;
+        const [existing] = await connection.query(checkQuery, [prescriptionId, today, scheduleTime]);
 
         if (existing.length > 0) {
+            await connection.rollback();
             return res.status(200).json({ message: 'Dose already marked as taken.' });
         }
 
-        const insertQuery = 'INSERT INTO dose_logs (user_id, prescription_id, schedule_time, taken_date) VALUES (?, ?, ?, ?)';
-        await dbPool.promise().query(insertQuery, [userId, prescriptionId, scheduleTime, today]);
+        // 2. Insert into dose_history
+        const insertQuery = 'INSERT INTO dose_history (prescription_id, scheduled_time, is_taken, taken_at) VALUES (?, ?, TRUE, NOW())';
+        await connection.query(insertQuery, [prescriptionId, scheduledDateTime]);
 
-        res.json({ message: 'Dose marked as taken.' });
+        // 3. Decrement Quantity in user_prescriptions
+        // Only if current_quantity is not null
+        const updateQtyQuery = `
+            UPDATE user_prescriptions 
+            SET current_quantity = GREATEST(0, current_quantity - pills_per_dose)
+            WHERE prescription_id = ? AND current_quantity IS NOT NULL
+        `;
+        await connection.query(updateQtyQuery, [prescriptionId]);
+
+        await connection.commit();
+        res.json({ message: 'Dose marked as taken and quantity updated.' });
+
     } catch (error) {
+        await connection.rollback();
         console.error('Error marking dose as taken:', error);
         res.status(500).json({ message: 'Failed to mark dose as taken.' });
+    } finally {
+        connection.release();
     }
 };

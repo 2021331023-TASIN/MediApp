@@ -7,7 +7,7 @@ const Home = () => {
        const [medication, setMedication] = useState(null);
        const [loading, setLoading] = useState(false);
        const [error, setError] = useState(null);
-       const [searched, setSearched] = useState(false);
+       // Duplicate lines removed
 
        const searchMedicine = async (e) => {
               e.preventDefault();
@@ -16,7 +16,6 @@ const Home = () => {
               setLoading(true);
               setError(null);
               setMedication(null);
-              setSearched(true);
 
               try {
                      // Using OpenFDA API
