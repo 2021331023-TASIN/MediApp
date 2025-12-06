@@ -54,7 +54,7 @@
 // //             if (token) {
 // //                 config.headers['Authorization'] = `Bearer ${token}`;
 // //             }
-            
+
 // //             const response = await axios(config);
 // //             return response.data;
 // //         } catch (error) {
@@ -76,7 +76,7 @@
 // //                 password,
 // //             });
 // //             const { token: newToken, user: newUser } = response.data;
-            
+
 // //             localStorage.setItem('token', newToken);
 // //             setToken(newToken);
 // //             setUser(newUser);
@@ -95,9 +95,9 @@
 // //                 email,
 // //                 password,
 // //             });
-            
+
 // //             const { token: newToken, user: newUser } = response.data;
-            
+
 // //             localStorage.setItem('token', newToken);
 // //             setToken(newToken);
 // //             setUser(newUser);
@@ -107,7 +107,7 @@
 // //             throw error.response.data.message || 'Login failed.';
 // //         }
 // //     };
-    
+
 // //     // ... (rest of the component remains the same)
 // //     const value = {
 // //         user,
@@ -184,7 +184,7 @@
 //             if (token) {
 //                 config.headers['Authorization'] = `Bearer ${token}`;
 //             }
-            
+
 //             const response = await axios(config);
 //             return response.data;
 //         } catch (error) {
@@ -206,7 +206,7 @@
 //                 password,
 //             });
 //             const { token: newToken, user: newUser } = response.data;
-            
+
 //             localStorage.setItem('token', newToken);
 //             setToken(newToken);
 //             setUser(newUser);
@@ -225,9 +225,9 @@
 //                 email,
 //                 password,
 //             });
-            
+
 //             const { token: newToken, user: newUser } = response.data;
-            
+
 //             localStorage.setItem('token', newToken);
 //             setToken(newToken);
 //             setUser(newUser);
@@ -237,7 +237,7 @@
 //             throw error.response.data.message || 'Login failed.';
 //         }
 //     };
-    
+
 //     // ... (rest of the component remains the same)
 //     const value = {
 //         user,
@@ -265,7 +265,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios'; // <-- VITAL: Ensures 'axios' is defined
 
 // The base URL for your backend API
-const API_URL = 'http://localhost:5000/api/auth'; 
+const API_URL = 'http://localhost:5000/api/auth';
 
 // Create the Context
 const AuthContext = createContext();
@@ -313,13 +313,13 @@ export const AuthProvider = ({ children }) => {
             if (token) {
                 config.headers['Authorization'] = `Bearer ${token}`;
             }
-            
+
             const response = await axios(config);
             return response.data;
         } catch (error) {
             if (error.response && error.response.status === 401) {
                 // If token expires or is invalid, force logout
-                logout(); 
+                logout();
                 throw new Error("Session expired. Please log in again.");
             }
             throw error.response?.data?.message || `API Request Failed: ${error.message}`;
@@ -335,12 +335,12 @@ export const AuthProvider = ({ children }) => {
                 password,
             });
             const { token: newToken, user: newUser } = response.data;
-            
+
             localStorage.setItem('token', newToken);
             setToken(newToken);
             setUser(newUser);
             axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-            return response.data; 
+            return response.data;
         } catch (error) {
             throw error.response.data.message || 'Registration failed.';
         }
@@ -353,9 +353,9 @@ export const AuthProvider = ({ children }) => {
                 email,
                 password,
             });
-            
+
             const { token: newToken, user: newUser } = response.data;
-            
+
             localStorage.setItem('token', newToken);
             setToken(newToken);
             setUser(newUser);
@@ -365,7 +365,7 @@ export const AuthProvider = ({ children }) => {
             throw error.response.data.message || 'Login failed.';
         }
     };
-    
+
     // Value object containing all exported variables/functions
     const value = {
         user,
@@ -375,7 +375,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         isAuthenticated: !!token,
-        authenticatedRequest, 
+        authenticatedRequest,
     };
 
     return (

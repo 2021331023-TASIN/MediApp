@@ -1,0 +1,193 @@
+/* src/components/Home.css */
+
+.home-container {
+    padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.hero-section {
+    text-align: center;
+    margin-bottom: 3rem;
+    width: 100%;
+}
+
+.main-heading {
+    font-size: 3rem;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #00c6ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+    font-weight: 800;
+}
+
+.sub-heading {
+    font-size: 1.2rem;
+    color: #666;
+    margin-bottom: 2.5rem;
+}
+
+/* Beautiful Search Form */
+.search-form {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    border-radius: 50px;
+    padding: 5px;
+    background: white;
+}
+
+.search-input {
+    flex-grow: 1;
+    border: none;
+    padding: 15px 25px;
+    font-size: 1.1rem;
+    border-radius: 50px;
+    outline: none;
+    background: transparent;
+}
+
+.search-button {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 0 !important; /* Override global button margin */
+}
+
+.search-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+}
+
+.search-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Results Section */
+.results-section {
+    width: 100%;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.medicine-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+    padding: 2rem;
+    margin-top: 1rem;
+}
+
+.medicine-header {
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.medicine-header h2 {
+    color: var(--text-dark);
+    font-size: 2rem;
+    margin-bottom: 0.2rem;
+    border-bottom: none; /* Override global h2 */
+    padding-bottom: 0;
+}
+
+.generic-name {
+    color: #888;
+    font-style: italic;
+    font-size: 1.1rem;
+}
+
+.medicine-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.info-group h3 {
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-group p {
+    color: #444;
+    line-height: 1.7;
+    font-size: 1rem;
+}
+
+/* Warnings specific styling */
+.warning-group {
+    background-color: #fff8e1;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+}
+
+.warning-group h3 {
+    color: #d39e00;
+}
+
+.danger-group {
+    background-color: #ffebee;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #dc3545;
+}
+
+.danger-group h3 {
+    color: #d32f2f;
+}
+
+.error-message-box {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #ffcdd2;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+    .search-form {
+        flex-direction: column;
+        border-radius: 12px;
+        box-shadow: none;
+        background: transparent;
+    }
+    
+    .search-input {
+        background: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border-radius: 12px;
+    }
+    
+    .search-button {
+        width: 100%;
+        border-radius: 12px;
+    }
+}
