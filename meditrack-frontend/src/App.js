@@ -128,7 +128,7 @@ const Dashboard = () => {
                           <strong>{schedule.name}</strong>
                           <span>{schedule.dosage}</span>
                           {schedule.current_quantity !== null && (
-                            <span style={{ fontSize: '0.8rem', color: schedule.current_quantity > 0 ? '#28a745' : '#dc3545' }}>
+                            <span style={{ fontSize: '0.8rem', color: schedule.current_quantity > 0 ? 'var(--primary-color)' : '#dc3545' }}>
                               {schedule.current_quantity > 0 ? `Qty: ${schedule.current_quantity}` : 'Out of Stock'}
                             </span>
                           )}
@@ -189,7 +189,7 @@ const Dashboard = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', textAlign: 'center' }}>
                               <div>
                                 <span style={{ fontSize: '0.85rem', color: '#666', marginBottom: '5px', display: 'block' }}>Total Course</span>
-                                <strong style={{ fontSize: '1.4rem', color: '#007bff' }}>
+                                <strong style={{ fontSize: '1.4rem', color: 'var(--primary-color)' }}>
                                   {totalDosesToTake !== null ? totalDosesToTake : '∞'}
                                 </strong>
                                 <span style={{ fontSize: '0.7rem', color: '#999', display: 'block' }}>doses</span>
