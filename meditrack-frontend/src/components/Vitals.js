@@ -1,7 +1,7 @@
 // frontend/src/components/Vitals.js
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const Vitals = () => {
     const { authenticatedRequest } = useAuth();
@@ -79,43 +79,140 @@ const Vitals = () => {
                 {/* --- Charts --- */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {/* BP Chart */}
-                    <div className="card">
-                        <h3>Blood Pressure Trends</h3>
+                    <div className="card chart-card">
+                        <h3 style={{ color: '#8884d8', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span>🩺</span> Blood Pressure Trends
+                        </h3>
                         {bpData.length > 0 ? (
                             <div style={{ width: '100%', height: 300 }}>
                                 <ResponsiveContainer>
-                                    <LineChart data={bpData}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="date" tickFormatter={(str) => new Date(str).toLocaleDateString()} />
-                                        <YAxis />
-                                        <Tooltip labelFormatter={(str) => new Date(str).toLocaleString()} />
-                                        <Legend />
-                                        {/* Simple numeric parsing approx for BP since it is string "120/80" - usually just chart Systolic or need complex parsing. 
-                                            For simple MVP, let's assume user inputs a single number or we just graph the string as category if recharts fails, 
-                                            BUT Recharts needs numbers. 
-                                            Let's try to parse: if it contains '/', split and take first.
-                                        */}
-                                        <Line type="monotone" dataKey="value" stroke="#8884d8" activeDot={{ r: 8 }} />
-                                    </LineChart>
+                                    <AreaChart data={bpData}>
+                                        <defs>
+                                            <linearGradient id="colorBp" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                                                <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
+                                        <XAxis
+                                            dataKey="date"
+                                            tickFormatter={(str) => new Date(str).toLocaleDateString()}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#666', fontSize: 12 }}
+                                        />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#666', fontSize: 12 }}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                            labelFormatter={(str) => new Date(str).toLocaleString()}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="value"
+                                            stroke="#8884d8"
+                                            strokeWidth={3}
+                                            fillOpacity={1}
+                                            fill="url(#colorBp)"
+                                            activeDot={{ r: 6, strokeWidth: 0 }}
+                                        />
+                                    </AreaChart>
                                 </ResponsiveContainer>
-                                <p style={{ fontSize: '0.8rem', color: '#666' }}>*Graphing raw values. For BP "120/80", ensure you enter only Systolic or simplify.</p>
+                                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '10px' }}>*Graphing raw values. For BP "120/80", ensure you enter only Systolic or simplify.</p>
                             </div>
                         ) : <p>No data recorded.</p>}
                     </div>
 
                     {/* Sugar Chart */}
-                    <div className="card">
-                        <h3>Blood Sugar</h3>
+                    <div className="card chart-card">
+                        <h3 style={{ color: '#10847e', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span>🩸</span> Blood Sugar
+                        </h3>
                         {sugarData.length > 0 ? (
                             <div style={{ width: '100%', height: 300 }}>
                                 <ResponsiveContainer>
-                                    <LineChart data={sugarData}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="date" tickFormatter={(str) => new Date(str).toLocaleDateString()} />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Line type="monotone" dataKey="value" stroke="#82ca9d" />
-                                    </LineChart>
+                                    <AreaChart data={sugarData}>
+                                        <defs>
+                                            <linearGradient id="colorSugar" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#10847e" stopOpacity={0.8} />
+                                                <stop offset="95%" stopColor="#10847e" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
+                                        <XAxis
+                                            dataKey="date"
+                                            tickFormatter={(str) => new Date(str).toLocaleDateString()}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#666', fontSize: 12 }}
+                                        />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#666', fontSize: 12 }}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="value"
+                                            stroke="#10847e"
+                                            strokeWidth={3}
+                                            fillOpacity={1}
+                                            fill="url(#colorSugar)"
+                                            activeDot={{ r: 6, strokeWidth: 0 }}
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+                        ) : <p>No data recorded.</p>}
+                    </div>
+
+                    {/* Weight Chart */}
+                    <div className="card chart-card">
+                        <h3 style={{ color: '#f2a13d', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span>⚖️</span> Weight Trends
+                        </h3>
+                        {weightData.length > 0 ? (
+                            <div style={{ width: '100%', height: 300 }}>
+                                <ResponsiveContainer>
+                                    <AreaChart data={weightData}>
+                                        <defs>
+                                            <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#f2a13d" stopOpacity={0.8} />
+                                                <stop offset="95%" stopColor="#f2a13d" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
+                                        <XAxis
+                                            dataKey="date"
+                                            tickFormatter={(str) => new Date(str).toLocaleDateString()}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#666', fontSize: 12 }}
+                                        />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#666', fontSize: 12 }}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="value"
+                                            stroke="#f2a13d"
+                                            strokeWidth={3}
+                                            fillOpacity={1}
+                                            fill="url(#colorWeight)"
+                                            activeDot={{ r: 6, strokeWidth: 0 }}
+                                        />
+                                    </AreaChart>
                                 </ResponsiveContainer>
                             </div>
                         ) : <p>No data recorded.</p>}

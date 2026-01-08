@@ -131,6 +131,12 @@ h2 {
     margin-bottom: 2rem;
     border: 1px solid rgba(0, 0, 0, 0.03);
     overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chart-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(16, 132, 126, 0.12);
 }
 
 .auth-container {
