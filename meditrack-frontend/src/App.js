@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable'; // <-- Added import
 import Login from './components/Login';
 import Register from './components/Register';
 import Home from './components/Home';
 import Prescriptions from './components/Prescriptions';
 import History from './components/History';
+import Vitals from './components/Vitals'; // <-- New Component
 import './App.css';
 import { useAuth } from './context/AuthContext';
 
@@ -12,7 +15,8 @@ import { useAuth } from './context/AuthContext';
 const Dashboard = () => {
   const { user, authenticatedRequest } = useAuth();
   const [stats, setStats] = React.useState({ activePrescriptions: 0, dailyDoses: 0 });
-  const [prescriptions, setPrescriptions] = React.useState([]);
+  const [activePrescriptions, setActivePrescriptions] = React.useState([]);
+  const [lowStockItems, setLowStockItems] = React.useState([]);
   const [todaySchedules, setTodaySchedules] = React.useState([]);
   const [loadingStats, setLoadingStats] = React.useState(true);
   const [loadingPrescriptions, setLoadingPrescriptions] = React.useState(true);
@@ -31,12 +35,63 @@ const Dashboard = () => {
   const fetchPrescriptionsList = React.useCallback(async () => {
     try {
       const presData = await authenticatedRequest('get', '/prescriptions');
-      setPrescriptions(presData);
+      setActivePrescriptions(presData);
+      // Filter for low stock (e.g., less than 5 pills)
+      const lowStock = presData.filter(p => p.current_quantity !== null && p.current_quantity <= 5);
+      setLowStockItems(lowStock);
       setLoadingPrescriptions(false);
     } catch (error) {
       console.error("Failed to fetch prescriptions list", error);
     }
   }, [authenticatedRequest]);
+
+  // --- PDF Generation for Current Prescriptions ---
+  const generateCurrentMedsPDF = () => {
+    try {
+      const doc = new jsPDF();
+
+      // Header
+      doc.setFillColor(16, 132, 126); // Teal Primary
+      doc.rect(0, 0, 210, 20, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.text(`MediTrack: Current Medications Report`, 14, 13);
+
+      // User Info
+      doc.setTextColor(50, 50, 50);
+      doc.setFontSize(12);
+      doc.text(`Patient Name: ${user.name}`, 14, 30);
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 38);
+
+      // Table
+      const tableColumn = ["Medicine", "Dosage", "Instructions", "Remaining", "Next Due"];
+      const tableRows = [];
+
+      activePrescriptions.forEach(item => {
+        const ticketData = [
+          item.name,
+          item.dosage,
+          item.instructions || 'As prescribed',
+          item.current_quantity !== null ? `${item.current_quantity} pills` : 'N/A',
+          item.next_dose_time || 'N/A'
+        ];
+        tableRows.push(ticketData);
+      });
+
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 45,
+        theme: 'grid',
+        headStyles: { fillColor: [16, 132, 126] }
+      });
+
+      doc.save(`MediTrack_Current_Meds_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (err) {
+      console.error("PDF Export Error:", err);
+      alert("Failed to generate PDF. Please try again.");
+    }
+  };
 
   const fetchStats = React.useCallback(async () => {
     try {
@@ -110,6 +165,21 @@ const Dashboard = () => {
     <div className="container dashboard-grid">
       <h2>Welcome back, {user.name}!</h2>
 
+      {/* --- Low Stock Alert --- */}
+      {lowStockItems.length > 0 && (
+        <div className="card alert-card" style={{ background: '#fff3cd', border: '1px solid #ffeeba', color: '#856404' }}>
+          <h3 style={{ color: '#856404', fontSize: '1.2rem', marginBottom: '0.5rem' }}>⚠️ Refill Needed</h3>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {lowStockItems.map(item => (
+              <li key={item.prescription_id} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
+                <strong>{item.name}</strong>
+                <span>Only {item.current_quantity} left</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="dashboard-columns">
         <div className="main-column">
           {/* --- Today's Medicine Checklist --- */}
@@ -153,9 +223,9 @@ const Dashboard = () => {
           <div className="card list-view">
             <h3>Current Medications</h3>
             {loadingPrescriptions ? <p>Loading...</p> : (
-              prescriptions.length === 0 ? <p>No active prescriptions.</p> : (
+              activePrescriptions.length === 0 ? <p>No active prescriptions.</p> : (
                 <ul className="prescription-list">
-                  {prescriptions.map(p => {
+                  {activePrescriptions.map(p => {
                     // Calculate Course Progress
                     const totalDosesToTake = (p.duration_days && p.doses_per_day)
                       ? (p.duration_days * p.doses_per_day)
@@ -258,12 +328,15 @@ const Dashboard = () => {
           <div className="quick-actions card">
             <h3>Quick Actions</h3>
             <div className="action-buttons-vertical">
-              <Link to="/prescriptions" className="button action-button primary-action">
+              <Link to="/prescriptions" className="button action-button primary-action" style={{ textDecoration: 'none' }}>
                 Manage Prescriptions
               </Link>
-              <Link to="/history" className="button action-button secondary-action">
+              <Link to="/history" className="button action-button secondary-action" style={{ textDecoration: 'none' }}>
                 View History
               </Link>
+              <button onClick={generateCurrentMedsPDF} className="button" style={{ background: '#f2d43d', color: '#000', marginTop: '5px' }}>
+                📄 Download Report
+              </button>
             </div>
           </div>
         </div>
@@ -301,6 +374,8 @@ function App() {
                 <>
                   <Link to="/dashboard">Dashboard</Link>
                   <Link to="/prescriptions">Prescriptions</Link>
+                  <Link to="/vitals">Health Vitals</Link> {/* <-- New Link */}
+                  <Link to="/history">History</Link>
                   <button onClick={logout} className="nav-button">Logout</button>
                 </>
               ) : (
@@ -323,6 +398,7 @@ function App() {
             {/* Protected Routes */}
             <Route path="/dashboard" element={<ProtectedRoute element={Dashboard} />} />
             <Route path="/prescriptions" element={<ProtectedRoute element={Prescriptions} />} />
+            <Route path="/vitals" element={<ProtectedRoute element={Vitals} />} /> {/* <-- New Route */}
             <Route path="/history" element={<ProtectedRoute element={History} />} />
 
 

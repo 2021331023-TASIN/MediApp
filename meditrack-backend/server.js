@@ -1,13 +1,14 @@
 require('dotenv').config();
-
 const express = require('express');
 const cors = require('cors');
 
 // Import DB Connection from config file
 const { dbPool } = require('./config/db');
+
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
-const prescriptionRoutes = require('./routes/prescriptionRoutes'); // <-- NEW IMPORT
+const prescriptionRoutes = require('./routes/prescriptionRoutes');
+const vitalsRoutes = require('./routes/vitalsRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,11 +23,17 @@ app.use(express.json()); // Allows parsing of JSON request bodies
 // Authentication routes
 app.use('/api/auth', authRoutes);
 // Prescription routes
-app.use('/api/prescriptions', prescriptionRoutes); // <-- NEW ROUTE INTEGRATION
+app.use('/api/prescriptions', prescriptionRoutes);
+app.use('/api/vitals', vitalsRoutes);
 
 // Basic Root Route
 app.get('/', (req, res) => {
     res.send('MediTrack API is running!');
+});
+
+// 404 Handler
+app.use((req, res) => {
+    res.status(404).send(`Cannot ${req.method} ${req.url}`);
 });
 
 // Start Server

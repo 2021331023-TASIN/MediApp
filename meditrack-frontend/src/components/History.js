@@ -1,7 +1,10 @@
+// frontend/src/components/History.js
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
-import './Prescriptions.css'; // Reusing the same styles for list clarity
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable'; // <-- Changed from side-effect import
+import './Prescriptions.css';
 
 const History = () => {
     const { isAuthenticated, authenticatedRequest, user } = useAuth();
@@ -28,15 +31,66 @@ const History = () => {
         }
     }, [isAuthenticated, user, authenticatedRequest]);
 
+    const generatePDF = () => {
+        try {
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFillColor(16, 132, 126); // Teal Primary
+            doc.rect(0, 0, 210, 20, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.text('MediTrack Medical Report', 14, 13);
+
+            // User Info
+            doc.setTextColor(50, 50, 50);
+            doc.setFontSize(12);
+            doc.text(`Patient Name: ${user.name}`, 14, 30);
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 38);
+
+            // Table
+            const tableColumn = ["Medicine", "Dosage", "End Date / Status"];
+            const tableRows = [];
+
+            historyList.forEach(item => {
+                const ticketData = [
+                    item.name,
+                    item.dosage,
+                    item.end_date ? new Date(item.end_date).toLocaleDateString() : 'Inactive'
+                ];
+                tableRows.push(ticketData);
+            });
+
+            // Use the imported function instead of doc.autoTable
+            autoTable(doc, {
+                head: [tableColumn],
+                body: tableRows,
+                startY: 45,
+                theme: 'grid',
+                headStyles: { fillColor: [16, 132, 126] }
+            });
+
+            doc.save(`MediTrack_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+        } catch (err) {
+            console.error("PDF Export Error:", err);
+            alert("Failed to generate PDF. Please try again.");
+        }
+    };
+
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
 
     return (
         <div className="container">
-            <div className="header-flex">
+            <div className="header-flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>Prescription History</h2>
-                <Link to="/dashboard" className="button nav-back-btn">← Back to Dashboard</Link>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={generatePDF} className="button" style={{ background: '#f2d43d', color: '#000' }}>
+                        📄 Download Report
+                    </button>
+                    <Link to="/dashboard" className="button nav-back-btn" style={{ textDecoration: 'none' }}>← Back to Dashboard</Link>
+                </div>
             </div>
 
             <div className="card list-view">
