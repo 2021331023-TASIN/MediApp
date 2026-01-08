@@ -237,7 +237,7 @@ const Prescriptions = () => {
                             <div className="duration-input-wrapper" style={{ display: 'flex', gap: '10px' }}>
                                 <input
                                     type="number"
-                                    placeholder="e.g. 7"
+                                    placeholder="   e.g. 7"
                                     value={durationValue}
                                     onChange={(e) => setDurationValue(e.target.value)}
                                     min="1"
@@ -246,7 +246,8 @@ const Prescriptions = () => {
                                 <select
                                     value={durationUnit}
                                     onChange={(e) => setDurationUnit(e.target.value)}
-                                    style={{ flex: 1, padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
+                                    // style={{ flex: 1, padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
+                                    style={{flex: 1}}
                                 >
                                     <option value="days">Days</option>
                                     <option value="weeks">Weeks</option>
@@ -259,10 +260,11 @@ const Prescriptions = () => {
                             <label>Doses Per Day (Frequency)</label>
                             <input
                                 type="number"
-                                placeholder="e.g. 3"
+                                placeholder="   e.g. 3"
                                 value={dosesPerDay}
                                 onChange={(e) => setDosesPerDay(e.target.value)}
                                 min="1"
+                               
                             />
                         </div>
                     </div>
@@ -271,11 +273,11 @@ const Prescriptions = () => {
                         <label>Pills Per Dose</label>
                         <input
                             type="number"
-                            placeholder="1"
+                            placeholder="  e.g. 1"
                             value={pillsPerDose}
                             onChange={(e) => setPillsPerDose(e.target.value)}
-                            min="1"
-                            required
+                            // min="1"
+                            //required
                         />
                     </div>
 

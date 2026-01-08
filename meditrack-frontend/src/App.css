@@ -137,10 +137,12 @@ h2 {
 }
 
 input[type="text"],
+input[type="number"],
 input[type="email"],
 input[type="password"],
 input[type="date"],
-input[type="time"] {
+select,
+textarea {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid #ccc;
@@ -149,7 +151,9 @@ input[type="time"] {
     transition: border-color 0.3s;
 }
 
-input:focus {
+input:focus,
+select:focus,
+textarea:focus{
     border-color: var(--primary-color);
     outline: none;
 }
