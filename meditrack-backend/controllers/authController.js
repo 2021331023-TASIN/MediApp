@@ -131,7 +131,7 @@ const generateToken = (userId) => {
  * Handles user registration.
  */
 exports.register = async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, age } = req.body;
 
     if (!name || !email || !password) {
         return res.status(400).json({ message: 'Please provide all required fields (Name, Email, Password).' });
@@ -142,9 +142,9 @@ exports.register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const password_hash = await bcrypt.hash(password, salt);
 
-        // 2. Insert new user into the 'users' table
-        const query = 'INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)';
-        const [result] = await dbPool.promise().query(query, [name, email, password_hash]);
+        // 2. Insert new user into the 'users' table (default age to 25 if not provided)
+        const query = 'INSERT INTO users (name, email, age, password_hash) VALUES (?, ?, ?, ?)';
+        const [result] = await dbPool.promise().query(query, [name, email, age || 25, password_hash]);
 
         const userId = result.insertId;
 
@@ -152,9 +152,9 @@ exports.register = async (req, res) => {
         const token = generateToken(userId);
 
         // 4. Respond with token and basic user info
-        res.status(201).json({ 
+        res.status(201).json({
             token,
-            user: { id: userId, name, email },
+            user: { id: userId, name, email, age: age || 25 },
             message: 'Registration successful.'
         });
 
@@ -180,7 +180,7 @@ exports.login = async (req, res) => {
 
     try {
         // 1. Find the user by email
-        const query = 'SELECT user_id, name, email, password_hash FROM users WHERE email = ?';
+        const query = 'SELECT user_id, name, email, age, password_hash FROM users WHERE email = ?';
         const [rows] = await dbPool.promise().query(query, [email]);
 
         if (rows.length === 0) {
@@ -202,7 +202,7 @@ exports.login = async (req, res) => {
         // 4. Respond with token and basic user info
         res.json({
             token,
-            user: { id: user.user_id, name: user.name, email: user.email },
+            user: { id: user.user_id, name: user.name, email: user.email, age: user.age },
             message: 'Login successful.'
         });
 

@@ -9,6 +9,7 @@ const Register = () => {
     const navigate = useNavigate();
 
     const [name, setName] = useState('');
+    const [age, setAge] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
@@ -20,7 +21,7 @@ const Register = () => {
         setLoading(true);
 
         try {
-            await register(name, email, password);
+            await register(name, email, password, parseInt(age));
             navigate('/dashboard');
         } catch (err) {
             console.error('Registration Error:', err);
@@ -45,6 +46,17 @@ const Register = () => {
                         autoComplete="off"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label htmlFor="age">Age:</label>
+                    <input
+                        id="age"
+                        type="number"
+                        name="age"
+                        value={age}
+                        onChange={(e) => setAge(e.target.value)}
                         required
                     />
                 </div>

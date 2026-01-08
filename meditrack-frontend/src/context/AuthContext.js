@@ -276,13 +276,17 @@ export const useAuth = () => useContext(AuthContext);
 // Provider Component
 export const AuthProvider = ({ children }) => {
     // STATE DEFINITIONS: FIXES ALL 'is not defined' ESLint errors
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => {
+        const savedUser = localStorage.getItem('user');
+        return savedUser ? JSON.parse(savedUser) : null;
+    });
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
     // LOGOUT FUNCTION: Must be defined before authenticatedRequest uses it
     const logout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         delete axios.defaults.headers.common['Authorization'];
         setToken(null);
         setUser(null);
@@ -328,16 +332,18 @@ export const AuthProvider = ({ children }) => {
     };
 
     // Registration Function (Uses state setters)
-    const register = async (name, email, password) => {
+    const register = async (name, email, password, age) => {
         try {
             const response = await axios.post(`${API_URL}/register`, {
                 name,
                 email,
                 password,
+                age,
             });
             const { token: newToken, user: newUser } = response.data;
 
             localStorage.setItem('token', newToken);
+            localStorage.setItem('user', JSON.stringify(newUser));
             setToken(newToken);
             setUser(newUser);
             axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
@@ -358,6 +364,7 @@ export const AuthProvider = ({ children }) => {
             const { token: newToken, user: newUser } = response.data;
 
             localStorage.setItem('token', newToken);
+            localStorage.setItem('user', JSON.stringify(newUser));
             setToken(newToken);
             setUser(newUser);
             axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;

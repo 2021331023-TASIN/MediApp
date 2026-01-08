@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable'; // <-- Added import
 import Login from './components/Login';
 import Register from './components/Register';
@@ -48,48 +48,67 @@ const Dashboard = () => {
   // --- PDF Generation for Current Prescriptions ---
   const generateCurrentMedsPDF = () => {
     try {
+      console.log("Starting Medication PDF generation...");
       const doc = new jsPDF();
+      const timestamp = new Date().toLocaleString();
 
-      // Header
-      doc.setFillColor(16, 132, 126); // Teal Primary
-      doc.rect(0, 0, 210, 20, 'F');
+      // Header Section
+      doc.setFillColor(16, 132, 126); // MediTrack Teal
+      doc.rect(0, 0, 210, 45, 'F');
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(16);
-      doc.text(`MediTrack: Current Medications Report`, 14, 13);
-
-      // User Info
-      doc.setTextColor(50, 50, 50);
+      doc.setFontSize(24);
+      doc.setFont("helvetica", "bold");
+      doc.text('OFFICIAL MEDICATION REPORT', 105, 18, { align: 'center' });
       doc.setFontSize(12);
-      doc.text(`Patient Name: ${user.name}`, 14, 30);
-      doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 38);
+      doc.setFont("helvetica", "normal");
+      doc.text('MediTrack Personal Health Monitoring System', 105, 28, { align: 'center' });
+      doc.text(`Generated on: ${timestamp}`, 105, 36, { align: 'center' });
+
+      // Patient info block
+      doc.setFillColor(245, 245, 245);
+      doc.rect(14, 50, 182, 30, 'F');
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text('PATIENT PROFILE', 20, 58);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Name: ${user?.name || 'Guest User'}`, 20, 66);
+      doc.text(`Age: ${user?.age || 'N/A'} Years`, 20, 73);
 
       // Table
       const tableColumn = ["Medicine", "Dosage", "Instructions", "Remaining", "Next Due"];
-      const tableRows = [];
-
-      activePrescriptions.forEach(item => {
-        const ticketData = [
-          item.name,
-          item.dosage,
-          item.instructions || 'As prescribed',
-          item.current_quantity !== null ? `${item.current_quantity} pills` : 'N/A',
-          item.next_dose_time || 'N/A'
-        ];
-        tableRows.push(ticketData);
-      });
+      const tableRows = (activePrescriptions || []).map(item => [
+        item.name || 'N/A',
+        item.dosage || 'N/A',
+        item.instructions || 'As prescribed',
+        item.current_quantity !== null ? `${item.current_quantity} pills` : 'N/A',
+        item.next_dose_time || 'N/A'
+      ]);
 
       autoTable(doc, {
         head: [tableColumn],
-        body: tableRows,
-        startY: 45,
+        body: tableRows.length > 0 ? tableRows : [["No active medications found", "-", "-", "-", "-"]],
+        startY: 90,
         theme: 'grid',
-        headStyles: { fillColor: [16, 132, 126] }
+        headStyles: { fillColor: [16, 132, 126], textColor: 255 },
+        alternateRowStyles: { fillColor: [240, 252, 251] }
       });
 
-      doc.save(`MediTrack_Current_Meds_${new Date().toISOString().split('T')[0]}.pdf`);
+      // Footer
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.text(`Page ${i} of ${pageCount} | MediTrack System`, 105, 285, { align: 'center' });
+      }
+
+      const fileName = `Medication_Report_${user?.name?.replace(/\s+/g, '_') || 'Patient'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      console.log("PDF saved successfully:", fileName);
     } catch (err) {
       console.error("PDF Export Error:", err);
-      alert("Failed to generate PDF. Please try again.");
+      alert("Failed to generate PDF. Details: " + err.message);
     }
   };
 
@@ -167,11 +186,11 @@ const Dashboard = () => {
 
       {/* --- Low Stock Alert --- */}
       {lowStockItems.length > 0 && (
-        <div className="card alert-card" style={{ background: '#fff3cd', border: '1px solid #ffeeba', color: '#856404' }}>
-          <h3 style={{ color: '#856404', fontSize: '1.2rem', marginBottom: '0.5rem' }}>⚠️ Refill Needed</h3>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
+        <div className="card card-alert">
+          <h3><span>⚠️</span> Refill Needed</h3>
+          <ul>
             {lowStockItems.map(item => (
-              <li key={item.prescription_id} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
+              <li key={item.prescription_id}>
                 <strong>{item.name}</strong>
                 <span>Only {item.current_quantity} left</span>
               </li>
@@ -184,7 +203,7 @@ const Dashboard = () => {
         <div className="main-column">
           {/* --- Today's Medicine Checklist --- */}
           <div className="card checklist-card">
-            <h3>✅ Today's Medicine</h3>
+            <h3><span>✅</span> Today's Medicine</h3>
             {loadingSchedules ? <p>Loading schedule...</p> : (
               todaySchedules.filter(s => !s.is_taken).length === 0 ? <p>No pending medicines for now.</p> : (
                 <ul className="checklist">

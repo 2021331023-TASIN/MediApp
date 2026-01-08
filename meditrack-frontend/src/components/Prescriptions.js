@@ -234,7 +234,7 @@ const Prescriptions = () => {
                     <div className="form-grid">
                         <div className="form-group">
                             <label>Duration & Unit</label>
-                            <div className="duration-input-wrapper" style={{ display: 'flex', gap: '10px' }}>
+                            <div className="duration-input-wrapper">
                                 <input
                                     type="number"
                                     placeholder="   e.g. 7"
@@ -246,8 +246,6 @@ const Prescriptions = () => {
                                 <select
                                     value={durationUnit}
                                     onChange={(e) => setDurationUnit(e.target.value)}
-                                    // style={{ flex: 1, padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-                                    style={{flex: 1}}
                                 >
                                     <option value="days">Days</option>
                                     <option value="weeks">Weeks</option>
@@ -264,7 +262,7 @@ const Prescriptions = () => {
                                 value={dosesPerDay}
                                 onChange={(e) => setDosesPerDay(e.target.value)}
                                 min="1"
-                               
+
                             />
                         </div>
                     </div>
@@ -276,8 +274,8 @@ const Prescriptions = () => {
                             placeholder="  e.g. 1"
                             value={pillsPerDose}
                             onChange={(e) => setPillsPerDose(e.target.value)}
-                            // min="1"
-                            //required
+                        // min="1"
+                        //required
                         />
                     </div>
 

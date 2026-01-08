@@ -1,6 +1,10 @@
 /* frontend/src/App.css */
 
 /* --- Global Styles & Variables (PharmEasy Theme) --- */
+* {
+    box-sizing: border-box;
+}
+
 :root {
     --primary-color: #10847e;
     /* PharmEasy Teal */
@@ -17,6 +21,56 @@
     --border-radius: 12px;
     --box-shadow: 0 4px 20px rgba(16, 132, 126, 0.08);
     --input-border: #dcdcdc;
+    --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- Keyframes --- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 body {
@@ -74,6 +128,7 @@ body {
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-underline-offset: 4px;
+    transform: translateY(-1px);
 }
 
 .nav-button {
@@ -104,6 +159,7 @@ main {
 
 .container {
     width: 100%;
+    animation: fadeIn 0.8s ease-out;
 }
 
 h1 {
@@ -125,13 +181,139 @@ h2 {
 /* --- Card & Form Styles --- */
 .card {
     background: var(--card-bg);
-    padding: 2.5rem;
+    padding: 2rem;
     border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    /* Softer, unified shadow */
     margin-bottom: 2rem;
-    border: 1px solid rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.04);
     overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: var(--transition);
+    animation: slideUp 0.6s ease-out;
+}
+
+.card h3 {
+    margin-top: 0;
+    color: var(--primary-dark);
+    font-size: 1.25rem;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Alert Boxes (Low stock, critical warnings) */
+.card-alert {
+    background: #fff5f5;
+    border: 1px solid #fed7d7 !important;
+    color: #c53030;
+    padding: 1.5rem;
+}
+
+.card-alert h3 {
+    color: #c53030;
+    border-bottom-color: #feb2b2;
+}
+
+.card-alert ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.card-alert li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(197, 48, 48, 0.1);
+}
+
+.card-alert li:last-child {
+    border-bottom: none;
+}
+
+/* Vitals Form Grid (Standardized) */
+.vitals-form {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 120px;
+    gap: 20px;
+    align-items: end;
+}
+
+@media (max-width: 768px) {
+    .vitals-form {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Stats Styling */
+.stats-row {
+    display: flex;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    background: #f8faf9;
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: 1px solid #e2e8e7;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.stat-item:hover {
+    border-color: var(--primary-color);
+    background: white;
+}
+
+.stat-item strong {
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+/* Health Status Pillars */
+.health-status-card {
+    animation: slideUp 0.7s ease-out;
+}
+
+.status-good {
+    background: #f0faf4;
+    border: 1px solid #c6f6d5;
+    color: #22543d;
+}
+
+.status-warning {
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    color: #822727;
+}
+
+.status-pill {
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.status-pill.good {
+    background: #c6f6d5;
+    color: #22543d;
+}
+
+.status-pill.warning {
+    background: #fed7d7;
+    color: #822727;
 }
 
 .chart-card:hover {
@@ -197,7 +379,7 @@ button[type="submit"],
     cursor: pointer;
     font-size: 1rem;
     font-weight: 700;
-    transition: all 0.3s;
+    transition: var(--transition);
     display: block;
     width: 100%;
     margin-top: 1.5rem;
@@ -209,6 +391,34 @@ button[type="submit"]:hover,
     background-color: var(--primary-dark);
     transform: translateY(-2px);
     box-shadow: 0 6px 15px rgba(16, 132, 126, 0.3);
+}
+
+.button-secondary {
+    background-color: var(--secondary-color) !important;
+    color: #333 !important;
+    border: none;
+    box-shadow: 0 4px 10px rgba(242, 212, 61, 0.2) !important;
+}
+
+.button-secondary:hover {
+    background-color: var(--secondary-hover) !important;
+}
+
+.header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.header-flex .button {
+    width: auto;
+    white-space: nowrap;
+    margin: 0;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
 }
 
 .error-message {
@@ -362,4 +572,65 @@ button[type="submit"]:hover,
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+/* --- Vitals Layout --- */
+.vitals-charts-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin-top: 20px;
+}
+
+@media (max-width: 600px) {
+    .vitals-charts-grid {
+        padding: 0 10px;
+    }
+}
+
+.stat-item {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    background: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid #eee;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.chart-card {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    background: linear-gradient(to bottom right, #ffffff, #fcfdfe);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+}
+
+.health-status-card {
+    padding: 20px;
+    border-radius: 12px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.status-good {
+    background: #f0faf4;
+    border: 1px solid #c6f6d5;
+    color: #22543d;
+}
+
+.status-warning {
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    color: #822727;
+}
+
+.health-status-card h4 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+}
+
+.stat-item strong {
+    color: var(--text-main);
 }
