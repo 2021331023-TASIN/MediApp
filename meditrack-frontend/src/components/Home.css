@@ -1,33 +1,103 @@
 /* src/components/Home.css */
 
-.home-container {
-    padding: 2rem;
-    max-width: 900px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.home-container-wrapper {
+    width: 100%;
+    overflow-x: hidden;
 }
 
 .hero-section {
+    position: relative;
+    padding: 8rem 2rem;
     text-align: center;
-    margin-bottom: 3rem;
-    width: 100%;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: white;
+    margin-bottom: 4rem;
+    filter: contrast(115%) brightness(95%);
+}
+
+.hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    z-index: 2;
+    position: relative;
 }
 
 .main-heading {
-    font-size: 3rem;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #00c6ff 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 1rem;
-    font-weight: 800;
+    font-size: 3.5rem;
+    color: white;
+    margin-bottom: 1.5rem;
+    font-weight: 900;
+    text-shadow: 0 4px 25px rgba(0, 0, 0, 0.8), 0 0 50px rgba(0, 0, 0, 0.4);
 }
 
 .sub-heading {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
+    color: rgba(255, 255, 255, 0.95);
+    margin-bottom: 3rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+
+/* Services Overview */
+.services-overview {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto 5rem;
+    padding: 0 2rem;
+    flex-wrap: wrap;
+}
+
+.service-card {
+    flex: 1;
+    min-width: 300px;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease;
+    border: 1px solid #eee;
+}
+
+.service-card:hover {
+    transform: translateY(-10px);
+}
+
+.service-img-container {
+    height: 200px;
+    overflow: hidden;
+}
+
+.service-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.service-card:hover .service-img {
+    transform: scale(1.1);
+}
+
+.service-text {
+    padding: 2rem;
+    text-align: center;
+}
+
+.service-text h3 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.service-text p {
     color: #666;
-    margin-bottom: 2.5rem;
+    line-height: 1.6;
 }
 
 /* Beautiful Search Form */
@@ -38,7 +108,7 @@
     max-width: 600px;
     margin: 0 auto;
     position: relative;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
     border-radius: 50px;
     padding: 5px;
     background: white;
@@ -64,7 +134,8 @@
     font-weight: 600;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
-    margin-top: 0 !important; /* Override global button margin */
+    margin-top: 0 !important;
+    /* Override global button margin */
 }
 
 .search-button:hover {
@@ -88,7 +159,7 @@
 .medicine-card {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     overflow: hidden;
     padding: 2rem;
     margin-top: 1rem;
@@ -104,7 +175,8 @@
     color: var(--text-dark);
     font-size: 2rem;
     margin-bottom: 0.2rem;
-    border-bottom: none; /* Override global h2 */
+    border-bottom: none;
+    /* Override global h2 */
     padding-bottom: 0;
 }
 
@@ -168,8 +240,15 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @media (max-width: 600px) {
@@ -179,13 +258,13 @@
         box-shadow: none;
         background: transparent;
     }
-    
+
     .search-input {
         background: white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         border-radius: 12px;
     }
-    
+
     .search-button {
         width: 100%;
         border-radius: 12px;

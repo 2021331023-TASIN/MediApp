@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
-import './Prescriptions.css'; // Assuming you might want specific styles, though we'll use inline or App.css for now
+import './Prescriptions.css';
+import prescriptionImg from '../assets/prescription.jpg';
 
 const Prescriptions = () => {
     const { isAuthenticated, authenticatedRequest, user } = useAuth();
@@ -11,7 +12,7 @@ const Prescriptions = () => {
 
     // Form states
     const [medicineName, setMedicineName] = useState('');
-    const [dosageAmount, setDosageAmount] = useState(''); // e.g. "10mg"
+    const [dosageAmount, setDosageAmount] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
@@ -87,7 +88,6 @@ const Prescriptions = () => {
         setFormLoading(true);
         setError(null);
 
-        // 1. Construct Schedule Times Array
         const scheduleTimes = [];
         if (selectedTimes.morning) scheduleTimes.push('10:00');
         if (selectedTimes.noon) scheduleTimes.push('14:00');
@@ -99,16 +99,12 @@ const Prescriptions = () => {
             return;
         }
 
-        // 2. Construct Combined Dosage String
-        // Format: "10mg - After Meal"
         const mealText = mealTiming === 'before' ? 'Before Meal' : 'After Meal';
         const finalDosage = `${dosageAmount} - ${mealText}`;
 
-        // Calculate Duration in Days and End Date
         let calculatedDurationDays = 0;
         let finalDosesPerDay = parseInt(dosesPerDay) || 1;
 
-        // If user didn't input doses per day, try to infer from checkboxes
         if (!dosesPerDay) {
             const times = [];
             if (selectedTimes.morning) times.push('08:00');
@@ -149,13 +145,11 @@ const Prescriptions = () => {
             await authenticatedRequest('post', '/prescriptions', newPrescription);
             alert('Prescription added successfully!');
 
-            // Reset Form
             setMedicineName('');
             setDosageAmount('');
             setStartDate('');
             setEndDate('');
             setSelectedTimes({ morning: false, noon: false, night: false });
-            setMealTiming('after');
             setMealTiming('after');
             setInitialQuantity('');
             setPillsPerDose('1');
@@ -165,7 +159,6 @@ const Prescriptions = () => {
             setInstructions('');
 
             fetchPrescriptions();
-
         } catch (err) {
             setError(err.toString());
         } finally {
@@ -173,13 +166,11 @@ const Prescriptions = () => {
         }
     };
 
-    // --- Delete Handling ---
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this prescription?")) return;
 
         try {
             await authenticatedRequest('delete', `/prescriptions/${id}`);
-            // Optimistic update or refetch
             setPrescriptions(prev => prev.filter(p => p.prescription_id !== id));
         } catch (err) {
             console.error(err);
@@ -187,169 +178,166 @@ const Prescriptions = () => {
         }
     };
 
-    // --- Render ---
     return (
-        <div className="container">
-            <h2>Manage Prescriptions</h2>
+        <div className="prescriptions-wrapper">
+            <div className="hero-section" style={{ backgroundImage: `linear-gradient(rgba(16, 132, 126, 0.55), rgba(16, 132, 126, 0.35)), url(${prescriptionImg})` }}>
+                <div className="hero-content">
+                    <h2 style={{ color: 'white', border: 'none', margin: 0, padding: 0, textShadow: '0 4px 25px rgba(0,0,0,0.7), 0 0 30px rgba(0,0,0,0.4)' }}>Manage Prescriptions</h2>
+                    <p style={{ color: 'white', marginTop: '0.5rem', fontWeight: 600, textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>Organize your medications and set reminders for your health.</p>
+                </div>
+            </div>
 
-            {/* Add Prescription Form */}
-            <div className="card add-form">
-                <h3>Add New Medication</h3>
-                <form onSubmit={handleAddPrescription}>
-                    {error && <p className="error-message">{error}</p>}
+            <div className="container">
+                <div className="card add-form">
+                    <h3>Add New Medication</h3>
+                    <form onSubmit={handleAddPrescription}>
+                        {error && <p className="error-message">{error}</p>}
 
-                    <div className="form-group">
-                        <label>Medicine Name</label>
-                        <input
-                            type="text"
-                            placeholder="e.g., Metformin"
-                            value={medicineName}
-                            onChange={(e) => setMedicineName(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="form-grid">
                         <div className="form-group">
-                            <label>Dosage Amount</label>
+                            <label>Medicine Name</label>
                             <input
                                 type="text"
-                                placeholder="e.g., 500mg"
-                                value={dosageAmount}
-                                onChange={(e) => setDosageAmount(e.target.value)}
+                                placeholder="e.g., Metformin"
+                                value={medicineName}
+                                onChange={(e) => setMedicineName(e.target.value)}
                                 required
                             />
                         </div>
-                        <div className="form-group">
-                            <label>Start From</label>
-                            <input
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                required
-                            />
-                        </div>
-                    </div>
 
-                    <div className="form-grid">
-                        <div className="form-group">
-                            <label>Duration & Unit</label>
-                            <div className="duration-input-wrapper">
+                        <div className="form-grid">
+                            <div className="form-group">
+                                <label>Dosage Amount</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g., 500mg"
+                                    value={dosageAmount}
+                                    onChange={(e) => setDosageAmount(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Start From</label>
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="form-grid">
+                            <div className="form-group">
+                                <label>Duration & Unit</label>
+                                <div className="duration-input-wrapper">
+                                    <input
+                                        type="number"
+                                        placeholder="   e.g. 7"
+                                        value={durationValue}
+                                        onChange={(e) => setDurationValue(e.target.value)}
+                                        min="1"
+                                    />
+                                    <select
+                                        value={durationUnit}
+                                        onChange={(e) => setDurationUnit(e.target.value)}
+                                    >
+                                        <option value="days">Days</option>
+                                        <option value="weeks">Weeks</option>
+                                        <option value="months">Months</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Doses Per Day (Frequency)</label>
                                 <input
                                     type="number"
-                                    placeholder="   e.g. 7"
-                                    value={durationValue}
-                                    onChange={(e) => setDurationValue(e.target.value)}
+                                    placeholder="   e.g. 3"
+                                    value={dosesPerDay}
+                                    onChange={(e) => setDosesPerDay(e.target.value)}
                                     min="1"
-                                    style={{ flex: 1 }}
                                 />
-                                <select
-                                    value={durationUnit}
-                                    onChange={(e) => setDurationUnit(e.target.value)}
-                                >
-                                    <option value="days">Days</option>
-                                    <option value="weeks">Weeks</option>
-                                    <option value="months">Months</option>
-                                </select>
                             </div>
                         </div>
 
                         <div className="form-group">
-                            <label>Doses Per Day (Frequency)</label>
+                            <label>Pills Per Dose</label>
                             <input
                                 type="number"
-                                placeholder="   e.g. 3"
-                                value={dosesPerDay}
-                                onChange={(e) => setDosesPerDay(e.target.value)}
-                                min="1"
-
+                                placeholder="  e.g. 1"
+                                value={pillsPerDose}
+                                onChange={(e) => setPillsPerDose(e.target.value)}
                             />
                         </div>
-                    </div>
 
-                    <div className="form-group">
-                        <label>Pills Per Dose</label>
-                        <input
-                            type="number"
-                            placeholder="  e.g. 1"
-                            value={pillsPerDose}
-                            onChange={(e) => setPillsPerDose(e.target.value)}
-                        // min="1"
-                        //required
-                        />
-                    </div>
-
-
-                    <div className="form-group section-group">
-                        <label className="section-label">When to take?</label>
-                        <div className="checkbox-group">
-                            <label className={`choice-chip ${selectedTimes.morning ? 'active' : ''}`}>
-                                <input
-                                    type="checkbox"
-                                    checked={selectedTimes.morning}
-                                    onChange={() => handleTimeChange('morning')}
-                                />
-                                🌅 Morning
-                            </label>
-                            <label className={`choice-chip ${selectedTimes.noon ? 'active' : ''}`}>
-                                <input
-                                    type="checkbox"
-                                    checked={selectedTimes.noon}
-                                    onChange={() => handleTimeChange('noon')}
-                                />
-                                ☀️ Noon
-                            </label>
-                            <label className={`choice-chip ${selectedTimes.night ? 'active' : ''}`}>
-                                <input
-                                    type="checkbox"
-                                    checked={selectedTimes.night}
-                                    onChange={() => handleTimeChange('night')}
-                                />
-                                🌙 Night
-                            </label>
+                        <div className="form-group section-group">
+                            <label className="section-label">When to take?</label>
+                            <div className="checkbox-group">
+                                <label className={`choice-chip ${selectedTimes.morning ? 'active' : ''}`}>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedTimes.morning}
+                                        onChange={() => handleTimeChange('morning')}
+                                    />
+                                    🌅 Morning
+                                </label>
+                                <label className={`choice-chip ${selectedTimes.noon ? 'active' : ''}`}>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedTimes.noon}
+                                        onChange={() => handleTimeChange('noon')}
+                                    />
+                                    ☀️ Noon
+                                </label>
+                                <label className={`choice-chip ${selectedTimes.night ? 'active' : ''}`}>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedTimes.night}
+                                        onChange={() => handleTimeChange('night')}
+                                    />
+                                    🌙 Night
+                                </label>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="form-group section-group">
-                        <label className="section-label">Meal Instruction</label>
-                        <div className="radio-group">
-                            <label className={`choice-chip ${mealTiming === 'before' ? 'active' : ''}`}>
-                                <input
-                                    type="radio"
-                                    name="mealTiming"
-                                    value="before"
-                                    checked={mealTiming === 'before'}
-                                    onChange={(e) => setMealTiming(e.target.value)}
-                                />
-                                🍽️ Before Meal
-                            </label>
-                            <label className={`choice-chip ${mealTiming === 'after' ? 'active' : ''}`}>
-                                <input
-                                    type="radio"
-                                    name="mealTiming"
-                                    value="after"
-                                    checked={mealTiming === 'after'}
-                                    onChange={(e) => setMealTiming(e.target.value)}
-                                />
-                                😋 After Meal
-                            </label>
+                        <div className="form-group section-group">
+                            <label className="section-label">Meal Instruction</label>
+                            <div className="radio-group">
+                                <label className={`choice-chip ${mealTiming === 'before' ? 'active' : ''}`}>
+                                    <input
+                                        type="radio"
+                                        name="mealTiming"
+                                        value="before"
+                                        checked={mealTiming === 'before'}
+                                        onChange={(e) => setMealTiming(e.target.value)}
+                                    />
+                                    🍽️ Before Meal
+                                </label>
+                                <label className={`choice-chip ${mealTiming === 'after' ? 'active' : ''}`}>
+                                    <input
+                                        type="radio"
+                                        name="mealTiming"
+                                        value="after"
+                                        checked={mealTiming === 'after'}
+                                        onChange={(e) => setMealTiming(e.target.value)}
+                                    />
+                                    😋 After Meal
+                                </label>
+                            </div>
                         </div>
-                    </div>
 
-                    <button type="submit" className="submit-btn" disabled={formLoading}>
-                        {formLoading ? 'Saving...' : 'Save Prescription'}
-                    </button>
-                </form >
-            </div >
+                        <button type="submit" className="submit-btn" disabled={formLoading}>
+                            {formLoading ? 'Saving...' : 'Save Prescription'}
+                        </button>
+                    </form>
+                </div>
 
-            {/* View Existing Prescriptions */}
-            < div className="card list-view" >
-                <h3>Current Medications</h3>
-                {loading && <p>Loading prescriptions...</p>}
-                {!loading && prescriptions.length === 0 && <p>No active prescriptions found.</p>}
+                <div className="card list-view">
+                    <h3>Current Medications</h3>
+                    {loading && <p>Loading prescriptions...</p>}
+                    {!loading && prescriptions.length === 0 && <p>No active prescriptions found.</p>}
 
-                {
-                    !loading && prescriptions.length > 0 && (
+                    {!loading && prescriptions.length > 0 && (
                         <ul className="prescription-list">
                             {prescriptions.map(p => (
                                 <li key={p.prescription_id} className="prescription-item">
@@ -383,12 +371,10 @@ const Prescriptions = () => {
                                 </li>
                             ))}
                         </ul>
-                    )
-                }
-            </div >
-
-
-        </div >
+                    )}
+                </div>
+            </div>
+        </div>
     );
 };
 

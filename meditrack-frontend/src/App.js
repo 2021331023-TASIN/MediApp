@@ -8,6 +8,7 @@ import Home from './components/Home';
 import Prescriptions from './components/Prescriptions';
 import History from './components/History';
 import Vitals from './components/Vitals'; // <-- New Component
+import BMICalculator from './components/BMICalculator'; // <-- New Component
 import './App.css';
 import { useAuth } from './context/AuthContext';
 
@@ -393,7 +394,8 @@ function App() {
                 <>
                   <Link to="/dashboard">Dashboard</Link>
                   <Link to="/prescriptions">Prescriptions</Link>
-                  <Link to="/vitals">Health Vitals</Link> {/* <-- New Link */}
+                  <Link to="/vitals">Health Vitals</Link>
+                  <Link to="/bmi">BMI Calculator</Link> {/* <-- New Link */}
                   <Link to="/history">History</Link>
                   <button onClick={logout} className="nav-button">Logout</button>
                 </>
@@ -417,7 +419,8 @@ function App() {
             {/* Protected Routes */}
             <Route path="/dashboard" element={<ProtectedRoute element={Dashboard} />} />
             <Route path="/prescriptions" element={<ProtectedRoute element={Prescriptions} />} />
-            <Route path="/vitals" element={<ProtectedRoute element={Vitals} />} /> {/* <-- New Route */}
+            <Route path="/vitals" element={<ProtectedRoute element={Vitals} />} />
+            <Route path="/bmi" element={<ProtectedRoute element={BMICalculator} />} /> {/* <-- New Route */}
             <Route path="/history" element={<ProtectedRoute element={History} />} />
 
 
