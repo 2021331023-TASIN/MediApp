@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import apiService from '../services/apiService';
 import './Home.css';
 import medicalImg from '../assets/medical.jpg';
 import doctorImg from '../assets/images.jpeg';
@@ -20,24 +20,21 @@ const Home = () => {
               setMedication(null);
 
               try {
-                     const response = await axios.get(`https://api.fda.gov/drug/label.json?search=openfda.brand_name:"${query}"+openfda.generic_name:"${query}"&limit=1`);
+                     const data = await apiService.searchMedicine(query);
 
-                     if (response.data.results && response.data.results.length > 0) {
-                            setMedication(response.data.results[0]);
+                     if (data.results && data.results.length > 0) {
+                            setMedication(data.results[0]);
                      } else {
                             setError('No results found.');
                      }
               } catch (err) {
                      console.error("Search error:", err);
-                     if (err.response && err.response.status === 404) {
-                            setError('Medicine not found in the database. Please check the spelling or try a different name.');
-                     } else {
-                            setError('An error occurred while fetching data. Please try again later.');
-                     }
+                     setError(err.message || 'An error occurred while fetching data. Please try again later.');
               } finally {
                      setLoading(false);
               }
        };
+
 
        return (
               <div className="home-container-wrapper">

@@ -14,7 +14,7 @@ import { useAuth } from './context/AuthContext';
 
 // --- UPDATED Dashboard Component for Modern UX ---
 const Dashboard = () => {
-  const { user, authenticatedRequest } = useAuth();
+  const { user } = useAuth();
   const [stats, setStats] = React.useState({ activePrescriptions: 0, dailyDoses: 0 });
   const [activePrescriptions, setActivePrescriptions] = React.useState([]);
   const [lowStockItems, setLowStockItems] = React.useState([]);
@@ -25,17 +25,17 @@ const Dashboard = () => {
 
   const fetchTodaySchedules = React.useCallback(async () => {
     try {
-      const schedules = await authenticatedRequest('get', '/prescriptions/today');
+      const schedules = await apiService.getTodaySchedules();
       setTodaySchedules(schedules);
       setLoadingSchedules(false);
     } catch (error) {
       console.error("Failed to fetch today's schedules", error);
     }
-  }, [authenticatedRequest]);
+  }, []);
 
   const fetchPrescriptionsList = React.useCallback(async () => {
     try {
-      const presData = await authenticatedRequest('get', '/prescriptions');
+      const presData = await apiService.getPrescriptions();
       setActivePrescriptions(presData);
       // Filter for low stock (e.g., less than 5 pills)
       const lowStock = presData.filter(p => p.current_quantity !== null && p.current_quantity <= 5);
@@ -44,7 +44,7 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Failed to fetch prescriptions list", error);
     }
-  }, [authenticatedRequest]);
+  }, []);
 
   // --- PDF Generation for Current Prescriptions ---
   const generateCurrentMedsPDF = () => {
@@ -115,13 +115,13 @@ const Dashboard = () => {
 
   const fetchStats = React.useCallback(async () => {
     try {
-      const statsData = await authenticatedRequest('get', '/prescriptions/stats');
+      const statsData = await apiService.getDashboardStats();
       setStats(statsData);
       setLoadingStats(false);
     } catch (error) {
       console.error("Failed to fetch stats", error);
     }
-  }, [authenticatedRequest]);
+  }, []);
 
   React.useEffect(() => {
     if (user) {
@@ -167,7 +167,7 @@ const Dashboard = () => {
 
   const handleMarkTaken = async (prescriptionId, scheduleTime) => {
     try {
-      await authenticatedRequest('post', '/prescriptions/take', { prescriptionId, scheduleTime });
+      await apiService.markDoseTaken(prescriptionId, scheduleTime);
       // Refresh list to update UI
       // Refresh list and stats to update UI (reduce quantity in all views)
       fetchTodaySchedules();
@@ -178,6 +178,7 @@ const Dashboard = () => {
       alert("Failed to mark as taken.");
     }
   };
+
 
   if (!user) return <Navigate to="/login" replace />;
 

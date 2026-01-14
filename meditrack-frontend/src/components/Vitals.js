@@ -1,19 +1,20 @@
 // frontend/src/components/Vitals.js
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import apiService from '../services/apiService';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const Vitals = () => {
-    const { authenticatedRequest, user } = useAuth();
+    const { user } = useAuth();
     const [vitals, setVitals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [newVital, setNewVital] = useState({ type: 'blood_pressure', value: '' });
 
     const fetchVitals = async () => {
         try {
-            const data = await authenticatedRequest('get', '/vitals');
+            const data = await apiService.getVitals();
             // Transform for chart: reverse to show newest last (left to right time)
             if (data && Array.isArray(data)) {
                 setVitals(data.reverse());
@@ -32,7 +33,7 @@ const Vitals = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await authenticatedRequest('post', '/vitals', newVital);
+            await apiService.addVital(newVital);
             setNewVital({ type: 'blood_pressure', value: '' });
             fetchVitals(); // Refresh list
         } catch (error) {
@@ -40,6 +41,7 @@ const Vitals = () => {
             alert(`Failed to add vital: ${error.message || "Unknown error"}`);
         }
     };
+
 
     const getHealthSummary = () => {
         let alerts = [];

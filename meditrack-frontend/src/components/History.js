@@ -1,13 +1,14 @@
 // frontend/src/components/History.js
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import apiService from '../services/apiService';
 import { Navigate, Link } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import './Prescriptions.css';
 
 const History = () => {
-    const { isAuthenticated, authenticatedRequest, user } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const [historyList, setHistoryList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -17,10 +18,10 @@ const History = () => {
             if (!user) return;
             setLoading(true);
             try {
-                const data = await authenticatedRequest('get', '/prescriptions/history');
+                const data = await apiService.getHistory();
                 setHistoryList(data || []);
             } catch (err) {
-                setError(err.toString());
+                setError(err.message || err.toString());
             } finally {
                 setLoading(false);
             }
@@ -29,7 +30,8 @@ const History = () => {
         if (isAuthenticated && user) {
             fetchHistory();
         }
-    }, [isAuthenticated, user, authenticatedRequest]);
+    }, [isAuthenticated, user]);
+
 
     const generatePDF = () => {
         try {

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import apiService from '../services/apiService';
 import { Navigate } from 'react-router-dom';
 import './Prescriptions.css';
 import prescriptionImg from '../assets/prescription.jpg';
 
 const Prescriptions = () => {
-    const { isAuthenticated, authenticatedRequest, user } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const [prescriptions, setPrescriptions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -56,14 +57,14 @@ const Prescriptions = () => {
         if (!user) return;
         setLoading(true);
         try {
-            const data = await authenticatedRequest('get', '/prescriptions');
+            const data = await apiService.getPrescriptions();
             setPrescriptions(data);
         } catch (err) {
-            setError(err.toString());
+            setError(err.message || err.toString());
         } finally {
             setLoading(false);
         }
-    }, [user, authenticatedRequest]);
+    }, [user]);
 
     useEffect(() => {
         if (isAuthenticated && user) {
@@ -142,7 +143,7 @@ const Prescriptions = () => {
         };
 
         try {
-            await authenticatedRequest('post', '/prescriptions', newPrescription);
+            await apiService.addPrescription(newPrescription);
             alert('Prescription added successfully!');
 
             setMedicineName('');
@@ -160,7 +161,7 @@ const Prescriptions = () => {
 
             fetchPrescriptions();
         } catch (err) {
-            setError(err.toString());
+            setError(err.message || err.toString());
         } finally {
             setFormLoading(false);
         }
@@ -170,13 +171,14 @@ const Prescriptions = () => {
         if (!window.confirm("Are you sure you want to delete this prescription?")) return;
 
         try {
-            await authenticatedRequest('delete', `/prescriptions/${id}`);
+            await apiService.deletePrescription(id);
             setPrescriptions(prev => prev.filter(p => p.prescription_id !== id));
         } catch (err) {
             console.error(err);
-            alert("Failed to delete: " + (err.response?.data?.message || err.message || err.toString()));
+            alert("Failed to delete: " + (err.message || err.toString()));
         }
     };
+
 
     return (
         <div className="prescriptions-wrapper">
