@@ -11,6 +11,7 @@ import Vitals from './components/Vitals'; // <-- New Component
 import BMICalculator from './components/BMICalculator'; // <-- New Component
 import './App.css';
 import { useAuth } from './context/AuthContext';
+import apiService from './services/apiService';
 
 // --- UPDATED Dashboard Component for Modern UX ---
 const Dashboard = () => {
@@ -25,7 +26,9 @@ const Dashboard = () => {
 
   const fetchTodaySchedules = React.useCallback(async () => {
     try {
+      console.log("Fetching today's schedules...");
       const schedules = await apiService.getTodaySchedules();
+      console.log("Schedules received:", schedules);
       setTodaySchedules(schedules);
       setLoadingSchedules(false);
     } catch (error) {
@@ -35,14 +38,28 @@ const Dashboard = () => {
 
   const fetchPrescriptionsList = React.useCallback(async () => {
     try {
+      console.log("Fetching all prescriptions...");
       const presData = await apiService.getPrescriptions();
+      console.log("Prescriptions received:", presData);
       setActivePrescriptions(presData);
       // Filter for low stock (e.g., less than 5 pills)
-      const lowStock = presData.filter(p => p.current_quantity !== null && p.current_quantity <= 5);
+      const lowStock = (presData || []).filter(p => p.current_quantity !== null && p.current_quantity <= 5);
       setLowStockItems(lowStock);
       setLoadingPrescriptions(false);
     } catch (error) {
       console.error("Failed to fetch prescriptions list", error);
+    }
+  }, []);
+
+  const fetchStats = React.useCallback(async () => {
+    try {
+      console.log("Fetching stats...");
+      const statsData = await apiService.getDashboardStats();
+      console.log("Stats received:", statsData);
+      setStats(statsData);
+      setLoadingStats(false);
+    } catch (error) {
+      console.error("Failed to fetch stats", error);
     }
   }, []);
 
@@ -113,21 +130,14 @@ const Dashboard = () => {
     }
   };
 
-  const fetchStats = React.useCallback(async () => {
-    try {
-      const statsData = await apiService.getDashboardStats();
-      setStats(statsData);
-      setLoadingStats(false);
-    } catch (error) {
-      console.error("Failed to fetch stats", error);
-    }
-  }, []);
-
   React.useEffect(() => {
     if (user) {
+      console.log("Dashboard mounted, fetching data for user:", user.id);
       fetchStats();
       fetchPrescriptionsList();
       fetchTodaySchedules();
+    } else {
+      console.log("Dashboard mounted, but user is null.");
     }
   }, [user, fetchStats, fetchPrescriptionsList, fetchTodaySchedules]);
 
